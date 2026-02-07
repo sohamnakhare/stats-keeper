@@ -38,15 +38,15 @@ export function StartingFiveSelector({
   };
 
   return (
-    <div className="space-y-[var(--space-4)]">
+    <div className="space-y-[var(--space-3)] sm:space-y-[var(--space-4)]">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-text-secondary">
+        <h3 className="text-xs sm:text-sm font-medium text-text-secondary">
           Select Starting Five
         </h3>
         <span
           className={`
-            text-sm font-mono px-[var(--space-2)] py-[var(--space-1)]
+            text-xs sm:text-sm font-mono px-[var(--space-2)] py-[var(--space-1)]
             rounded-[var(--radius-sm)]
             ${starters.length === maxStarters 
               ? 'bg-[rgba(0,245,160,0.15)] text-primary' 
@@ -54,14 +54,14 @@ export function StartingFiveSelector({
             }
           `}
         >
-          {starters.length}/{maxStarters} selected
+          {starters.length}/{maxStarters}
         </span>
       </div>
 
       {/* Starters Section */}
       <div className="space-y-[var(--space-2)]">
         <p className="text-xs text-text-muted uppercase tracking-wide">Starters</p>
-        <div className="flex flex-wrap gap-[var(--space-2)]">
+        <div className="grid grid-cols-5 gap-[var(--space-1)] sm:flex sm:flex-wrap sm:gap-[var(--space-2)]">
           {Array.from({ length: maxStarters }).map((_, index) => {
             const player = starterPlayers[index];
             
@@ -72,21 +72,21 @@ export function StartingFiveSelector({
                   type="button"
                   onClick={() => toggleStarter(player.number)}
                   className="
-                    w-[var(--tap-target-xl)] h-[var(--tap-target-xl)]
-                    flex flex-col items-center justify-center gap-[var(--space-1)]
+                    aspect-square sm:w-[var(--tap-target-xl)] sm:h-[var(--tap-target-xl)]
+                    flex flex-col items-center justify-center gap-0 sm:gap-[var(--space-1)]
                     bg-surface
                     border-2 border-primary
-                    rounded-[var(--radius-lg)]
+                    rounded-[var(--radius-md)] sm:rounded-[var(--radius-lg)]
                     shadow-[var(--glow-primary)]
                     transition-all duration-[var(--duration-fast)]
-                    hover:scale-105
+                    active:scale-95 sm:hover:scale-105
                   "
                   style={{ borderColor: teamColor }}
                 >
-                  <span className="font-display text-2xl text-text-primary">
+                  <span className="font-display text-lg sm:text-2xl text-text-primary">
                     #{player.number}
                   </span>
-                  <span className="text-xs text-text-secondary truncate max-w-[70px]">
+                  <span className="text-[10px] sm:text-xs text-text-secondary truncate w-full px-1 text-center hidden sm:block">
                     {player.name.split(' ').pop()}
                   </span>
                 </button>
@@ -98,14 +98,14 @@ export function StartingFiveSelector({
               <div
                 key={`empty-${index}`}
                 className="
-                  w-[var(--tap-target-xl)] h-[var(--tap-target-xl)]
+                  aspect-square sm:w-[var(--tap-target-xl)] sm:h-[var(--tap-target-xl)]
                   flex items-center justify-center
                   bg-bg-tertiary
                   border-2 border-dashed border-border
-                  rounded-[var(--radius-lg)]
+                  rounded-[var(--radius-md)] sm:rounded-[var(--radius-lg)]
                 "
               >
-                <span className="text-text-muted text-xs">Empty</span>
+                <span className="text-text-muted text-[10px] sm:text-xs">—</span>
               </div>
             );
           })}
@@ -116,9 +116,9 @@ export function StartingFiveSelector({
       {benchPlayers.length > 0 && (
         <div className="space-y-[var(--space-2)]">
           <p className="text-xs text-text-muted uppercase tracking-wide">
-            Bench (tap to add as starter)
+            Bench <span className="hidden sm:inline">(tap to add as starter)</span>
           </p>
-          <div className="flex flex-wrap gap-[var(--space-2)]">
+          <div className="grid grid-cols-5 gap-[var(--space-1)] sm:flex sm:flex-wrap sm:gap-[var(--space-2)]">
             {benchPlayers.map((player) => (
               <button
                 key={player.number}
@@ -126,20 +126,20 @@ export function StartingFiveSelector({
                 onClick={() => toggleStarter(player.number)}
                 disabled={starters.length >= maxStarters}
                 className="
-                  w-[var(--tap-target-xl)] h-[var(--tap-target-xl)]
-                  flex flex-col items-center justify-center gap-[var(--space-1)]
+                  aspect-square sm:w-[var(--tap-target-xl)] sm:h-[var(--tap-target-xl)]
+                  flex flex-col items-center justify-center gap-0 sm:gap-[var(--space-1)]
                   bg-surface
                   border border-border
-                  rounded-[var(--radius-lg)]
+                  rounded-[var(--radius-md)] sm:rounded-[var(--radius-lg)]
                   transition-all duration-[var(--duration-fast)]
-                  hover:border-text-muted
+                  active:scale-95 sm:hover:border-text-muted
                   disabled:opacity-50 disabled:cursor-not-allowed
                 "
               >
-                <span className="font-display text-xl text-text-secondary">
+                <span className="font-display text-base sm:text-xl text-text-secondary">
                   #{player.number}
                 </span>
-                <span className="text-xs text-text-muted truncate max-w-[70px]">
+                <span className="text-[10px] sm:text-xs text-text-muted truncate w-full px-1 text-center hidden sm:block">
                   {player.name.split(' ').pop()}
                 </span>
               </button>
@@ -152,11 +152,11 @@ export function StartingFiveSelector({
       {players.length === 0 && (
         <div className="
           flex items-center justify-center
-          p-[var(--space-8)]
+          p-[var(--space-4)] sm:p-[var(--space-8)]
           bg-bg-tertiary
           border border-dashed border-border
           rounded-[var(--radius-lg)]
-          text-text-muted
+          text-xs sm:text-sm text-text-muted text-center
         ">
           Add players to select starting five
         </div>

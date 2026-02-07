@@ -49,17 +49,17 @@ export function ScoreHeader({
       w-full
       bg-surface
       border-b border-border
-      px-[var(--space-4)]
-      py-[var(--space-3)]
+      px-[var(--space-2)] sm:px-[var(--space-4)]
+      py-[var(--space-2)] sm:py-[var(--space-3)]
     ">
       <div className="
         max-w-7xl mx-auto
         flex items-center justify-between
-        gap-[var(--space-4)]
+        gap-[var(--space-2)] sm:gap-[var(--space-4)]
       ">
         {/* Home Team */}
         <div 
-          className="flex-1 flex items-center gap-[var(--space-3)] cursor-pointer group"
+          className="flex-1 flex items-center gap-[var(--space-1)] sm:gap-[var(--space-3)] cursor-pointer group"
           onClick={() => onPossessionChange?.('home')}
           role="button"
           tabIndex={0}
@@ -67,7 +67,7 @@ export function ScoreHeader({
         >
           <div 
             className="
-              w-3 h-3 rounded-full
+              w-2 h-2 sm:w-3 sm:h-3 rounded-full flex-shrink-0
               transition-all duration-[var(--duration-fast)]
             "
             style={{ 
@@ -76,14 +76,14 @@ export function ScoreHeader({
             }}
             aria-label={possession === 'home' ? 'Home team has possession' : ''}
           />
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-0">
             <span className="
-              text-text-muted text-xs font-medium uppercase tracking-wide
+              text-text-muted text-[10px] sm:text-xs font-medium uppercase tracking-wide hidden sm:block
             ">
               Home
             </span>
             <span className="
-              text-text-primary font-heading font-semibold text-lg
+              text-text-primary font-heading font-semibold text-sm sm:text-lg truncate
               group-hover:text-primary transition-colors
             ">
               {homeTeam.shortName}
@@ -91,7 +91,7 @@ export function ScoreHeader({
           </div>
           <span 
             className="
-              font-display text-[48px] leading-none ml-auto
+              font-display text-[32px] sm:text-[48px] leading-none ml-auto
               transition-transform duration-[var(--duration-fast)]
             "
             style={{ color: homeTeam.color }}
@@ -103,12 +103,12 @@ export function ScoreHeader({
         {/* Period & Clock Display */}
         <div className="
           flex flex-col items-center
-          px-[var(--space-6)]
-          min-w-[140px]
+          px-[var(--space-2)] sm:px-[var(--space-6)]
+          min-w-[80px] sm:min-w-[140px]
         ">
           {/* Period Label */}
           <span className="
-            text-text-muted text-xs font-medium uppercase tracking-wide
+            text-text-muted text-[10px] sm:text-xs font-medium uppercase tracking-wide
           ">
             {PERIOD_LABELS[period]}
           </span>
@@ -118,7 +118,7 @@ export function ScoreHeader({
             <div className="flex flex-col items-center">
               <span 
                 className={`
-                  font-display text-[40px] leading-none tracking-tight
+                  font-display text-[24px] sm:text-[40px] leading-none tracking-tight
                   transition-colors duration-[var(--duration-fast)]
                   ${clock.isRunning ? 'text-primary' : 'text-text-primary'}
                 `}
@@ -127,13 +127,13 @@ export function ScoreHeader({
               </span>
 
               {/* Clock Controls */}
-              <div className="flex items-center gap-[var(--space-2)] mt-[var(--space-2)]">
+              <div className="flex items-center gap-[var(--space-1)] sm:gap-[var(--space-2)] mt-[var(--space-1)] sm:mt-[var(--space-2)]">
                 {clock.isRunning ? (
                   <button
                     onClick={clock.onPause}
                     className="
                       flex items-center justify-center
-                      w-8 h-8
+                      w-7 h-7 sm:w-8 sm:h-8
                       rounded-full
                       bg-accent/20
                       hover:bg-accent/30
@@ -142,7 +142,7 @@ export function ScoreHeader({
                     aria-label="Pause clock"
                   >
                     <svg
-                      className="w-4 h-4 text-accent"
+                      className="w-3 h-3 sm:w-4 sm:h-4 text-accent"
                       viewBox="0 0 24 24"
                       fill="currentColor"
                     >
@@ -155,7 +155,7 @@ export function ScoreHeader({
                     onClick={clock.onStart}
                     className="
                       flex items-center justify-center
-                      w-8 h-8
+                      w-7 h-7 sm:w-8 sm:h-8
                       rounded-full
                       bg-primary/20
                       hover:bg-primary/30
@@ -164,7 +164,7 @@ export function ScoreHeader({
                     aria-label="Start clock"
                   >
                     <svg
-                      className="w-4 h-4 text-primary"
+                      className="w-3 h-3 sm:w-4 sm:h-4 text-primary"
                       viewBox="0 0 24 24"
                       fill="currentColor"
                     >
@@ -177,7 +177,7 @@ export function ScoreHeader({
                   onClick={clock.onReset}
                   className="
                     flex items-center justify-center
-                    w-8 h-8
+                    w-7 h-7 sm:w-8 sm:h-8
                     rounded-full
                     bg-text-muted/10
                     hover:bg-text-muted/20
@@ -186,7 +186,7 @@ export function ScoreHeader({
                   aria-label="Reset clock"
                 >
                   <svg
-                    className="w-4 h-4 text-text-muted"
+                    className="w-3 h-3 sm:w-4 sm:h-4 text-text-muted"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -203,7 +203,7 @@ export function ScoreHeader({
           ) : (
             <>
               <span className="
-                text-text-primary font-heading font-bold text-2xl
+                text-text-primary font-heading font-bold text-xl sm:text-2xl
               ">
                 {PERIOD_LABELS[period]}
               </span>
@@ -211,11 +211,11 @@ export function ScoreHeader({
                 flex items-center gap-1 mt-1
               ">
                 <span className="
-                  w-2 h-2 rounded-full bg-[#FF3366]
+                  w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#FF3366]
                   animate-live-pulse
                 " />
                 <span className="
-                  text-[#FF3366] text-xs font-semibold uppercase
+                  text-[#FF3366] text-[10px] sm:text-xs font-semibold uppercase
                 ">
                   Live
                 </span>
@@ -229,11 +229,11 @@ export function ScoreHeader({
               flex items-center gap-1 mt-1
             ">
               <span className={`
-                w-2 h-2 rounded-full
+                w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full
                 ${clock.isRunning ? 'bg-[#FF3366] animate-live-pulse' : 'bg-text-muted'}
               `} />
               <span className={`
-                text-xs font-semibold uppercase
+                text-[10px] sm:text-xs font-semibold uppercase
                 ${clock.isRunning ? 'text-[#FF3366]' : 'text-text-muted'}
               `}>
                 {clock.isRunning ? 'Live' : 'Paused'}
@@ -244,7 +244,7 @@ export function ScoreHeader({
 
         {/* Away Team */}
         <div 
-          className="flex-1 flex items-center gap-[var(--space-3)] flex-row-reverse cursor-pointer group"
+          className="flex-1 flex items-center gap-[var(--space-1)] sm:gap-[var(--space-3)] flex-row-reverse cursor-pointer group"
           onClick={() => onPossessionChange?.('away')}
           role="button"
           tabIndex={0}
@@ -252,7 +252,7 @@ export function ScoreHeader({
         >
           <div 
             className="
-              w-3 h-3 rounded-full
+              w-2 h-2 sm:w-3 sm:h-3 rounded-full flex-shrink-0
               transition-all duration-[var(--duration-fast)]
             "
             style={{ 
@@ -261,14 +261,14 @@ export function ScoreHeader({
             }}
             aria-label={possession === 'away' ? 'Away team has possession' : ''}
           />
-          <div className="flex flex-col items-end">
+          <div className="flex flex-col items-end min-w-0">
             <span className="
-              text-text-muted text-xs font-medium uppercase tracking-wide
+              text-text-muted text-[10px] sm:text-xs font-medium uppercase tracking-wide hidden sm:block
             ">
               Away
             </span>
             <span className="
-              text-text-primary font-heading font-semibold text-lg
+              text-text-primary font-heading font-semibold text-sm sm:text-lg truncate
               group-hover:text-primary transition-colors
             ">
               {awayTeam.shortName}
@@ -276,7 +276,7 @@ export function ScoreHeader({
           </div>
           <span 
             className="
-              font-display text-[48px] leading-none mr-auto
+              font-display text-[32px] sm:text-[48px] leading-none mr-auto
               transition-transform duration-[var(--duration-fast)]
             "
             style={{ color: awayTeam.color }}

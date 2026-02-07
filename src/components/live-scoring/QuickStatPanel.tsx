@@ -46,33 +46,34 @@ export function QuickStatPanel({
     <div className="
       bg-surface
       border border-border
-      rounded-[var(--radius-lg)]
-      p-[var(--space-4)]
+      rounded-[var(--radius-md)] sm:rounded-[var(--radius-lg)]
+      p-[var(--space-2)] sm:p-[var(--space-4)]
     ">
       {/* Header with selected player */}
       <div className="
         flex items-center justify-between
-        mb-[var(--space-4)]
-        pb-[var(--space-3)]
+        mb-[var(--space-2)] sm:mb-[var(--space-4)]
+        pb-[var(--space-2)] sm:pb-[var(--space-3)]
         border-b border-border
+        gap-[var(--space-2)]
       ">
-        <div className="flex items-center gap-[var(--space-2)]">
+        <div className="flex items-center gap-[var(--space-1)] sm:gap-[var(--space-2)] min-w-0 flex-1">
           {selectedPlayerNumber !== undefined ? (
             <>
               <span className="
-                font-display text-3xl text-primary leading-none
+                font-display text-xl sm:text-3xl text-primary leading-none flex-shrink-0
               ">
                 #{selectedPlayerNumber}
               </span>
               <span className="
-                font-heading font-semibold text-text-primary text-lg uppercase
+                font-heading font-semibold text-text-primary text-sm sm:text-lg uppercase truncate
               ">
                 {selectedPlayerName}
               </span>
             </>
           ) : (
-            <span className="text-text-muted italic">
-              Select a player to record stats
+            <span className="text-text-muted italic text-xs sm:text-base">
+              Select a player
             </span>
           )}
         </div>
@@ -83,21 +84,22 @@ export function QuickStatPanel({
           disabled={!isUndoAvailable || isSaving}
           className="
             min-h-[var(--tap-target-min)]
-            px-[var(--space-4)]
-            flex items-center gap-[var(--space-2)]
+            px-[var(--space-2)] sm:px-[var(--space-4)]
+            flex items-center gap-[var(--space-1)] sm:gap-[var(--space-2)]
             bg-bg-tertiary
             border border-border
             rounded-[var(--radius-md)]
             text-text-secondary
-            font-heading font-semibold text-sm
+            font-heading font-semibold text-xs sm:text-sm
             transition-all duration-[var(--duration-fast)]
             hover:bg-bg-hover hover:text-text-primary
             disabled:opacity-50 disabled:pointer-events-none
+            flex-shrink-0
           "
           aria-label="Undo last action"
         >
           <svg
-            className="w-5 h-5"
+            className="w-4 h-4 sm:w-5 sm:h-5"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -108,16 +110,16 @@ export function QuickStatPanel({
             <path d="M3 7v6h6" />
             <path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13" />
           </svg>
-          UNDO
+          <span className="hidden sm:inline">UNDO</span>
         </button>
       </div>
 
       {/* Shot Buttons */}
-      <div className="mb-[var(--space-4)]">
-        <h3 className="text-text-muted text-xs font-medium uppercase tracking-wide mb-[var(--space-2)]">
+      <div className="mb-[var(--space-2)] sm:mb-[var(--space-4)]">
+        <h3 className="text-text-muted text-[10px] sm:text-xs font-medium uppercase tracking-wide mb-[var(--space-1)] sm:mb-[var(--space-2)]">
           Shots
         </h3>
-        <div className="grid grid-cols-4 gap-[var(--space-2)]">
+        <div className="grid grid-cols-4 gap-[var(--space-1)] sm:gap-[var(--space-2)]">
           <StatButton
             label="2PT"
             sublabel="MADE"
@@ -154,11 +156,11 @@ export function QuickStatPanel({
       </div>
 
       {/* Other Stats */}
-      <div className="mb-[var(--space-4)]">
-        <h3 className="text-text-muted text-xs font-medium uppercase tracking-wide mb-[var(--space-2)]">
+      <div className="mb-[var(--space-2)] sm:mb-[var(--space-4)]">
+        <h3 className="text-text-muted text-[10px] sm:text-xs font-medium uppercase tracking-wide mb-[var(--space-1)] sm:mb-[var(--space-2)]">
           Stats
         </h3>
-        <div className="grid grid-cols-4 gap-[var(--space-2)]">
+        <div className="grid grid-cols-4 gap-[var(--space-1)] sm:gap-[var(--space-2)]">
           <StatButton
             label="REB"
             onClick={() => handleStat('rebound')}
@@ -184,10 +186,10 @@ export function QuickStatPanel({
 
       {/* Turnovers, Fouls, Free Throws, Substitution */}
       <div>
-        <h3 className="text-text-muted text-xs font-medium uppercase tracking-wide mb-[var(--space-2)]">
+        <h3 className="text-text-muted text-[10px] sm:text-xs font-medium uppercase tracking-wide mb-[var(--space-1)] sm:mb-[var(--space-2)]">
           Other
         </h3>
-        <div className="grid grid-cols-4 gap-[var(--space-2)]">
+        <div className="grid grid-cols-4 gap-[var(--space-1)] sm:gap-[var(--space-2)]">
           <StatButton
             label="T/O"
             variant="warning"
@@ -217,9 +219,9 @@ export function QuickStatPanel({
       {/* Saving indicator */}
       {isSaving && (
         <div className="
-          mt-[var(--space-3)]
+          mt-[var(--space-2)] sm:mt-[var(--space-3)]
           flex items-center justify-center gap-[var(--space-2)]
-          text-text-muted text-sm
+          text-text-muted text-xs sm:text-sm
         ">
           <svg
             className="animate-spin h-4 w-4"
@@ -287,10 +289,10 @@ function StatButton({
       onClick={onClick}
       disabled={disabled}
       className={`
-        min-h-[var(--tap-target-lg)]
+        min-h-[var(--tap-target-md)] sm:min-h-[var(--tap-target-lg)]
         flex flex-col items-center justify-center
         border-2
-        rounded-[var(--radius-lg)]
+        rounded-[var(--radius-md)] sm:rounded-[var(--radius-lg)]
         transition-all duration-[var(--duration-fast)]
         focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary
         active:scale-[0.98]
@@ -300,18 +302,18 @@ function StatButton({
       aria-label={sublabel ? `${label} ${sublabel}` : label}
     >
       {icon && (
-        <span className={`text-lg ${textClasses[variant]}`}>
+        <span className={`text-sm sm:text-lg ${textClasses[variant]}`}>
           {icon}
         </span>
       )}
       <span className={`
-        font-heading font-bold text-sm
+        font-heading font-bold text-xs sm:text-sm
         ${textClasses[variant]}
       `}>
         {label}
       </span>
       {sublabel && (
-        <span className="text-xs text-text-muted">
+        <span className="text-[10px] sm:text-xs text-text-muted">
           {sublabel}
         </span>
       )}

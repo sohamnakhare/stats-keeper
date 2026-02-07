@@ -86,19 +86,19 @@ export default function NewGamePage() {
 
   return (
     <main className="min-h-screen bg-bg-primary">
-      <div className="max-w-5xl mx-auto px-[var(--space-4)] py-[var(--space-8)]">
+      <div className="max-w-5xl mx-auto px-[var(--space-3)] sm:px-[var(--space-4)] py-[var(--space-4)] sm:py-[var(--space-8)]">
         {/* Header */}
-        <div className="mb-[var(--space-8)]">
-          <h1 className="font-heading text-3xl font-bold text-text-primary mb-[var(--space-2)]">
+        <div className="mb-[var(--space-4)] sm:mb-[var(--space-8)]">
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-text-primary mb-[var(--space-1)] sm:mb-[var(--space-2)]">
             New Game
           </h1>
-          <p className="text-text-secondary">
+          <p className="text-sm sm:text-base text-text-secondary">
             Set up the teams for your game. You can load saved rosters or create new ones.
           </p>
         </div>
 
-        {/* Progress Indicator */}
-        <div className="flex items-center gap-[var(--space-4)] mb-[var(--space-8)]">
+        {/* Progress Indicator - Hidden on mobile */}
+        <div className="hidden sm:flex items-center gap-[var(--space-4)] mb-[var(--space-8)]">
           <div className="flex items-center gap-[var(--space-2)]">
             <span className="
               w-8 h-8 flex items-center justify-center

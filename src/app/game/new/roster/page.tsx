@@ -218,19 +218,19 @@ export default function RosterPage() {
 
   return (
     <main className="min-h-screen bg-bg-primary">
-      <div className="max-w-5xl mx-auto px-[var(--space-4)] py-[var(--space-8)]">
+      <div className="max-w-5xl mx-auto px-[var(--space-3)] sm:px-[var(--space-4)] py-[var(--space-4)] sm:py-[var(--space-8)]">
         {/* Header */}
-        <div className="mb-[var(--space-8)]">
-          <h1 className="font-heading text-3xl font-bold text-text-primary mb-[var(--space-2)]">
+        <div className="mb-[var(--space-4)] sm:mb-[var(--space-8)]">
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-text-primary mb-[var(--space-1)] sm:mb-[var(--space-2)]">
             Set Up Rosters
           </h1>
-          <p className="text-text-secondary">
+          <p className="text-sm sm:text-base text-text-secondary">
             Add players to each team and select starting lineups.
           </p>
         </div>
 
-        {/* Progress Indicator */}
-        <div className="flex items-center gap-[var(--space-4)] mb-[var(--space-8)]">
+        {/* Progress Indicator - Hidden on mobile */}
+        <div className="hidden sm:flex items-center gap-[var(--space-4)] mb-[var(--space-8)]">
           <div className="flex items-center gap-[var(--space-2)]">
             <span className="
               w-8 h-8 flex items-center justify-center
@@ -268,47 +268,47 @@ export default function RosterPage() {
         {/* Error Banner */}
         {error && (
           <div className="
-            mb-[var(--space-6)]
-            p-[var(--space-4)]
+            mb-[var(--space-4)] sm:mb-[var(--space-6)]
+            p-[var(--space-3)] sm:p-[var(--space-4)]
             bg-[rgba(255,107,53,0.15)]
             border border-accent
             rounded-[var(--radius-lg)]
-            text-accent
+            text-sm sm:text-base text-accent
           ">
             {error}
           </div>
         )}
 
-        {/* Tab Switcher (Mobile) */}
-        <div className="flex gap-[var(--space-2)] mb-[var(--space-6)] lg:hidden">
+        {/* Tab Switcher (Mobile/Tablet) */}
+        <div className="flex gap-[var(--space-2)] mb-[var(--space-4)] sm:mb-[var(--space-6)] lg:hidden">
           <Button
             variant={activeTab === 'home' ? 'primary' : 'ghost'}
             onClick={() => setActiveTab('home')}
-            className="flex-1"
+            className="flex-1 text-sm sm:text-base"
           >
             <span
-              className="w-2 h-2 rounded-full mr-[var(--space-2)]"
+              className="w-2 h-2 rounded-full mr-[var(--space-1)] sm:mr-[var(--space-2)] flex-shrink-0"
               style={{ backgroundColor: setupData.homeTeam.color }}
             />
-            {setupData.homeTeam.shortName}
-            {homeComplete && <span className="ml-[var(--space-2)]">✓</span>}
+            <span className="truncate">{setupData.homeTeam.shortName}</span>
+            {homeComplete && <span className="ml-[var(--space-1)] sm:ml-[var(--space-2)] flex-shrink-0">✓</span>}
           </Button>
           <Button
             variant={activeTab === 'away' ? 'primary' : 'ghost'}
             onClick={() => setActiveTab('away')}
-            className="flex-1"
+            className="flex-1 text-sm sm:text-base"
           >
             <span
-              className="w-2 h-2 rounded-full mr-[var(--space-2)]"
+              className="w-2 h-2 rounded-full mr-[var(--space-1)] sm:mr-[var(--space-2)] flex-shrink-0"
               style={{ backgroundColor: setupData.awayTeam.color }}
             />
-            {setupData.awayTeam.shortName}
-            {awayComplete && <span className="ml-[var(--space-2)]">✓</span>}
+            <span className="truncate">{setupData.awayTeam.shortName}</span>
+            {awayComplete && <span className="ml-[var(--space-1)] sm:ml-[var(--space-2)] flex-shrink-0">✓</span>}
           </Button>
         </div>
 
         {/* Roster Editors */}
-        <div className="space-y-[var(--space-6)] lg:grid lg:grid-cols-2 lg:gap-[var(--space-6)] lg:space-y-0">
+        <div className="space-y-[var(--space-4)] sm:space-y-[var(--space-6)] lg:grid lg:grid-cols-2 lg:gap-[var(--space-6)] lg:space-y-0">
           {/* Home Team */}
           <div className={`${activeTab === 'away' ? 'hidden lg:block' : ''}`}>
             <RosterEditor
@@ -341,10 +341,11 @@ export default function RosterPage() {
         </div>
 
         {/* Navigation */}
-        <div className="flex justify-between mt-[var(--space-8)]">
+        <div className="flex flex-col sm:flex-row gap-[var(--space-3)] sm:gap-0 sm:justify-between mt-[var(--space-6)] sm:mt-[var(--space-8)]">
           <Button
             variant="ghost"
             onClick={() => router.push('/game/new')}
+            className="order-2 sm:order-1 text-sm sm:text-base"
           >
             ← Back to Teams
           </Button>
@@ -353,6 +354,7 @@ export default function RosterPage() {
             onClick={handleStartGame}
             disabled={!canStart || isSaving}
             isLoading={isSaving}
+            className="order-1 sm:order-2 w-full sm:w-auto"
           >
             {isSaving ? 'Creating Game...' : 'Start Game →'}
           </Button>

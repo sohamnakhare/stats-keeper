@@ -14,6 +14,9 @@ import {
   FoulTypeModal,
   SubstitutionModal,
   ShotTypeModal,
+  MobileTeamTabs,
+  MobilePlayerGrid,
+  MobileStatModal,
   type TurnoverType,
   type FoulType,
   type ShotDetails,
@@ -60,6 +63,10 @@ export default function GamePage({ params }: GamePageProps) {
   const [showShotTypeModal, setShowShotTypeModal] = useState(false);
   const [shotEventForDetails, setShotEventForDetails] = useState<PlayEventResponse | null>(null);
   const [shotTeamId, setShotTeamId] = useState<string | null>(null);
+
+  // Mobile-specific states
+  const [mobileActiveTeam, setMobileActiveTeam] = useState<'home' | 'away'>('home');
+  const [showMobileStatModal, setShowMobileStatModal] = useState(false);
 
   // Toast state for shot details prompt
   const [showShotToast, setShowShotToast] = useState(false);
@@ -138,6 +145,18 @@ export default function GamePage({ params }: GamePageProps) {
       setShotTeamId(event.teamId);
       setShowShotTypeModal(true);
     }
+  }, []);
+
+  // Handle mobile player selection - opens stat modal
+  const handleMobilePlayerSelect = useCallback((playerId: string) => {
+    selectPlayer(playerId, mobileActiveTeam);
+    setShowMobileStatModal(true);
+  }, [selectPlayer, mobileActiveTeam]);
+
+  // Handle mobile stat modal close
+  const handleMobileStatModalClose = useCallback(() => {
+    setShowMobileStatModal(false);
+    // Don't clear selection immediately to allow for follow-up modals
   }, []);
 
   // Handle free throw completion
@@ -307,7 +326,7 @@ export default function GamePage({ params }: GamePageProps) {
       />
 
       {/* Main Content */}
-      <div className="flex-1 p-[var(--space-4)]">
+      <div className="flex-1 p-[var(--space-2)] sm:p-[var(--space-4)]">
         <div className="max-w-7xl mx-auto h-full">
           {/* Desktop/Tablet Layout: 3 columns */}
           <div className="hidden lg:grid lg:grid-cols-[1fr_minmax(320px,400px)_1fr] gap-[var(--space-4)] h-full">
@@ -362,56 +381,74 @@ export default function GamePage({ params }: GamePageProps) {
             />
           </div>
 
-          {/* Mobile Layout: Stacked */}
-          <div className="lg:hidden flex flex-col gap-[var(--space-4)]">
-            {/* Team Selection Row */}
-            <div className="grid grid-cols-2 gap-[var(--space-3)]">
-              <TeamPanel
-                teamName={game.homeTeam.name}
-                shortName={game.homeTeam.shortName}
-                color={game.homeTeam.color}
-                players={game.homeTeam.players}
-                onPlayerSelect={(playerId) => selectPlayer(playerId, 'home')}
-                selectedPlayerId={selectedTeam === 'home' ? selectedPlayerId : null}
-                isActiveTeam={selectedTeam === 'home'}
-                side="home"
-              />
-              <TeamPanel
-                teamName={game.awayTeam.name}
-                shortName={game.awayTeam.shortName}
-                color={game.awayTeam.color}
-                players={game.awayTeam.players}
-                onPlayerSelect={(playerId) => selectPlayer(playerId, 'away')}
-                selectedPlayerId={selectedTeam === 'away' ? selectedPlayerId : null}
-                isActiveTeam={selectedTeam === 'away'}
-                side="away"
-              />
+          {/* Mobile Layout: Team Tabs + Player Grid */}
+          <div className="lg:hidden flex flex-col h-full -mx-[var(--space-2)] sm:-mx-[var(--space-4)] -mt-[var(--space-2)] sm:-mt-[var(--space-4)]">
+            {/* Team Tabs */}
+            <MobileTeamTabs
+              homeTeam={{
+                name: game.homeTeam.name,
+                shortName: game.homeTeam.shortName,
+                color: game.homeTeam.color,
+              }}
+              awayTeam={{
+                name: game.awayTeam.name,
+                shortName: game.awayTeam.shortName,
+                color: game.awayTeam.color,
+              }}
+              activeTeam={mobileActiveTeam}
+              onTeamChange={setMobileActiveTeam}
+            />
+
+            {/* Player Grid for Active Team */}
+            <MobilePlayerGrid
+              players={mobileActiveTeam === 'home' ? game.homeTeam.players : game.awayTeam.players}
+              teamColor={mobileActiveTeam === 'home' ? game.homeTeam.color : game.awayTeam.color}
+              onPlayerSelect={handleMobilePlayerSelect}
+              selectedPlayerId={selectedTeam === mobileActiveTeam ? selectedPlayerId : null}
+            />
+
+            {/* Bottom Section: Undo + Play-by-Play */}
+            <div className="border-t border-border bg-surface">
+              {/* Undo Button */}
+              {isUndoAvailable && (
+                <div className="px-3 py-2 border-b border-border">
+                  <button
+                    onClick={undoLastAction}
+                    disabled={isSaving}
+                    className="
+                      w-full py-2.5
+                      flex items-center justify-center gap-2
+                      bg-bg-tertiary
+                      border border-border
+                      rounded-lg
+                      text-text-secondary
+                      font-heading font-semibold text-sm
+                      transition-all duration-100
+                      active:scale-[0.98]
+                      disabled:opacity-50
+                    "
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 7v6h6" />
+                      <path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13" />
+                    </svg>
+                    Undo
+                  </button>
+                </div>
+              )}
+
+              {/* Play-by-Play Feed */}
+              <div className="px-3 py-2">
+                <PlayByPlayFeed
+                  events={events}
+                  homeTeam={game.homeTeam}
+                  awayTeam={game.awayTeam}
+                  maxVisible={3}
+                  onEventTap={handleEventTap}
+                  compact
+                />
+              </div>
             </div>
-
-            {/* Quick Stats Panel */}
-            <QuickStatPanel
-              selectedPlayerName={selectedPlayer?.name}
-              selectedPlayerNumber={selectedPlayer?.number}
-              selectedPlayerIsOnCourt={selectedPlayer?.isOnCourt}
-              onStatRecord={handleStatRecord}
-              onFreeThrowClick={() => setShowFreeThrowModal(true)}
-              onTurnoverClick={() => setShowTurnoverModal(true)}
-              onFoulClick={() => setShowFoulModal(true)}
-              onSubstitutionClick={() => setShowSubstitutionModal(true)}
-              onUndoClick={undoLastAction}
-              disabled={!isPlayerSelected}
-              isUndoAvailable={isUndoAvailable}
-              isSaving={isSaving}
-            />
-
-            {/* Play-by-Play Feed */}
-            <PlayByPlayFeed
-              events={events}
-              homeTeam={game.homeTeam}
-              awayTeam={game.awayTeam}
-              maxVisible={3}
-              onEventTap={handleEventTap}
-            />
           </div>
         </div>
       </div>
@@ -419,6 +456,34 @@ export default function GamePage({ params }: GamePageProps) {
       {/* Modals */}
       {selectedPlayer && (
         <>
+          {/* Mobile Full-Page Stat Modal */}
+          <MobileStatModal
+            isOpen={showMobileStatModal}
+            playerName={selectedPlayer.name}
+            playerNumber={selectedPlayer.number}
+            teamColor={selectedTeamColor}
+            isOnCourt={selectedPlayer.isOnCourt}
+            onStatRecord={handleStatRecord}
+            onFreeThrowClick={() => {
+              setShowMobileStatModal(false);
+              setShowFreeThrowModal(true);
+            }}
+            onTurnoverClick={() => {
+              setShowMobileStatModal(false);
+              setShowTurnoverModal(true);
+            }}
+            onFoulClick={() => {
+              setShowMobileStatModal(false);
+              setShowFoulModal(true);
+            }}
+            onSubstitutionClick={() => {
+              setShowMobileStatModal(false);
+              setShowSubstitutionModal(true);
+            }}
+            onClose={handleMobileStatModalClose}
+            isSaving={isSaving}
+          />
+
           <FreeThrowModal
             player={selectedPlayer}
             isOpen={showFreeThrowModal}

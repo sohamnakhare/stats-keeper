@@ -10,6 +10,7 @@ interface PlayByPlayFeedProps {
   awayTeam: TeamData;
   maxVisible?: number;
   onEventTap?: (event: PlayEventResponse) => void;
+  compact?: boolean;
 }
 
 const EVENT_LABELS: Record<EventType, string> = {
@@ -58,6 +59,7 @@ export function PlayByPlayFeed({
   awayTeam,
   maxVisible = 5,
   onEventTap,
+  compact = false,
 }: PlayByPlayFeedProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -85,24 +87,107 @@ export function PlayByPlayFeed({
 
   if (events.length === 0) {
     return (
-      <div className="
-        bg-surface
-        border border-border
-        rounded-[var(--radius-lg)]
-        p-[var(--space-4)]
-      ">
+      <div className={`
+        ${compact ? '' : 'bg-surface border border-border rounded-[var(--radius-lg)] p-[var(--space-4)]'}
+      `}>
         <div className="flex items-center justify-between mb-[var(--space-2)]">
-          <h3 className="text-text-muted text-xs font-medium uppercase tracking-wide">
+          <h3 className={`text-text-muted font-medium uppercase tracking-wide ${compact ? 'text-[10px]' : 'text-xs'}`}>
             Play-by-Play
           </h3>
         </div>
-        <p className="text-text-muted text-sm italic text-center py-[var(--space-4)]">
+        <p className={`text-text-muted italic text-center ${compact ? 'text-xs py-2' : 'text-sm py-[var(--space-4)]'}`}>
           No plays recorded yet
         </p>
       </div>
     );
   }
 
+  // Compact mode for mobile
+  if (compact) {
+    return (
+      <div>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-1.5">
+          <h3 className="text-text-muted text-[10px] font-medium uppercase tracking-wide">
+            Recent Plays
+          </h3>
+          <span className="text-text-muted text-[10px]">{events.length} total</span>
+        </div>
+
+        {/* Compact Events List */}
+        <div className="space-y-1 max-h-[120px] overflow-y-auto">
+          {visibleEvents.map((event, index) => {
+            const team = getTeamInfo(event.teamId);
+            const player = getPlayerInfo(event.playerId, event.teamId);
+            const isScoring = event.eventType === 'field_goal_made' || event.eventType === 'free_throw_made';
+            const isShotEvent = event.eventType === 'field_goal_made' || event.eventType === 'field_goal_missed';
+            const isClickable = isShotEvent && onEventTap;
+
+            return (
+              <div
+                key={event.id}
+                onClick={isClickable ? () => onEventTap(event) : undefined}
+                role={isClickable ? 'button' : undefined}
+                tabIndex={isClickable ? 0 : undefined}
+                onKeyDown={isClickable ? (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onEventTap(event);
+                  }
+                } : undefined}
+                className={`
+                  flex items-center gap-2
+                  py-1.5 px-2
+                  bg-bg-tertiary
+                  rounded-md
+                  text-xs
+                  ${index === 0 ? 'animate-slide-up' : ''}
+                  ${isClickable ? 'cursor-pointer active:bg-bg-hover' : ''}
+                `}
+              >
+                {/* Team color dot */}
+                <div
+                  className="w-1.5 h-1.5 rounded-full shrink-0"
+                  style={{ backgroundColor: team.color }}
+                />
+
+                {/* Player number & event */}
+                <div className="flex-1 min-w-0 truncate">
+                  {player && (
+                    <span className="text-text-primary font-medium">#{player.number} </span>
+                  )}
+                  <span className="text-text-secondary">{formatEventDescription(event)}</span>
+                </div>
+
+                {/* Points badge */}
+                {isScoring && (
+                  <span className="text-primary font-bold text-[10px] shrink-0">
+                    +{event.eventType === 'free_throw_made' ? 1 : event.eventData?.points || 2}
+                  </span>
+                )}
+
+                {/* Edit indicator for shot events */}
+                {isClickable && (
+                  <svg
+                    className="w-3 h-3 text-text-muted shrink-0"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Full mode for desktop
   return (
     <div className="
       bg-surface

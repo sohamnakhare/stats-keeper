@@ -154,15 +154,15 @@ export function RosterEditor({
 
   return (
     <Card className={`border-l-4 ${borderColor}`}>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="flex items-center gap-[var(--space-2)]">
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center gap-[var(--space-2)] sm:gap-[var(--space-4)]">
+        <CardTitle className="flex items-center gap-[var(--space-2)] text-base sm:text-lg">
           <span
-            className="w-3 h-3 rounded-full"
+            className="w-3 h-3 rounded-full flex-shrink-0"
             style={{ backgroundColor: team.color }}
           />
-          {team.name} Roster
+          <span className="truncate">{team.name} Roster</span>
         </CardTitle>
-        <div className="flex items-center gap-[var(--space-2)]">
+        <div className="flex items-center gap-[var(--space-2)] sm:ml-auto">
           <SavedRosterSelector
             rosters={savedRosters}
             onSelect={onLoadRoster}
@@ -175,10 +175,10 @@ export function RosterEditor({
               variant="ghost"
               size="sm"
               onClick={onSaveRoster}
-              className="flex items-center gap-[var(--space-2)]"
+              className="flex items-center gap-[var(--space-1)] sm:gap-[var(--space-2)] text-xs sm:text-sm"
             >
               <svg
-                className="w-4 h-4"
+                className="w-4 h-4 flex-shrink-0"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -188,32 +188,33 @@ export function RosterEditor({
                 <polyline points="17 21 17 13 7 13 7 21" />
                 <polyline points="7 3 7 8 15 8" />
               </svg>
-              Save Template
+              <span className="hidden xs:inline sm:inline">Save</span>
+              <span className="hidden sm:inline"> Template</span>
             </Button>
           )}
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-[var(--space-6)]">
+      <CardContent className="space-y-[var(--space-4)] sm:space-y-[var(--space-6)]">
         {/* Player List */}
-        <div className="space-y-[var(--space-4)]">
-          <p className="text-sm font-medium text-text-secondary">
+        <div className="space-y-[var(--space-3)] sm:space-y-[var(--space-4)]">
+          <p className="text-xs sm:text-sm font-medium text-text-secondary">
             Players ({players.length})
           </p>
 
           {players.length === 0 ? (
             <div className="
               flex items-center justify-center
-              p-[var(--space-8)]
+              p-[var(--space-4)] sm:p-[var(--space-8)]
               bg-bg-tertiary
               border border-dashed border-border
               rounded-[var(--radius-lg)]
-              text-text-muted
+              text-xs sm:text-sm text-text-muted text-center
             ">
               No players added yet. Add at least 5 players to start a game.
             </div>
           ) : (
-            <div className="space-y-[var(--space-3)]">
+            <div className="space-y-[var(--space-2)] sm:space-y-[var(--space-3)]">
               {players.map((player, index) => (
                 <PlayerRow
                   key={index}
@@ -234,10 +235,10 @@ export function RosterEditor({
             type="button"
             variant="ghost"
             onClick={handleAddPlayer}
-            className="w-full"
+            className="w-full text-sm sm:text-base"
           >
             <svg
-              className="w-5 h-5 mr-[var(--space-2)]"
+              className="w-4 h-4 sm:w-5 sm:h-5 mr-[var(--space-2)]"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -262,7 +263,7 @@ export function RosterEditor({
 
         {/* Validation Summary */}
         {players.length > 0 && (
-          <div className="flex flex-wrap gap-[var(--space-4)] text-sm">
+          <div className="flex flex-wrap gap-[var(--space-2)] sm:gap-[var(--space-4)] text-xs sm:text-sm">
             {starters.length < 5 && (
               <span className="text-accent">
                 ⚠ Need {5 - starters.length} more starter{5 - starters.length !== 1 ? 's' : ''}

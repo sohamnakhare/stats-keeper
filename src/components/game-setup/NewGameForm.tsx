@@ -138,13 +138,13 @@ export function NewGameForm({ onSubmit, recentRosters, onSelectRoster }: NewGame
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-[var(--space-6)]">
+    <form onSubmit={handleSubmit} className="space-y-[var(--space-4)] sm:space-y-[var(--space-6)]">
       {/* Date and Venue */}
       <Card>
-        <CardHeader>
-          <CardTitle>Game Details</CardTitle>
+        <CardHeader className="pb-[var(--space-2)] sm:pb-[var(--space-4)]">
+          <CardTitle className="text-base sm:text-lg">Game Details</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-[var(--space-4)] md:grid-cols-2">
+        <CardContent className="grid gap-[var(--space-3)] sm:gap-[var(--space-4)] md:grid-cols-2">
           <Input
             label="Date & Time"
             type="datetime-local"
@@ -162,19 +162,19 @@ export function NewGameForm({ onSubmit, recentRosters, onSelectRoster }: NewGame
       </Card>
 
       {/* Teams */}
-      <div className="grid gap-[var(--space-6)] lg:grid-cols-2">
+      <div className="grid gap-[var(--space-4)] sm:gap-[var(--space-6)] lg:grid-cols-2">
         {/* Home Team */}
         <Card className="border-l-4 border-l-team-home">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-[var(--space-2)]">
+          <CardHeader className="pb-[var(--space-2)] sm:pb-[var(--space-4)]">
+            <CardTitle className="flex items-center gap-[var(--space-2)] text-base sm:text-lg">
               <span
-                className="w-3 h-3 rounded-full"
+                className="w-3 h-3 rounded-full flex-shrink-0"
                 style={{ backgroundColor: homeTeam.color }}
               />
               Home Team
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-[var(--space-4)]">
+          <CardContent className="space-y-[var(--space-3)] sm:space-y-[var(--space-4)]">
             <Input
               label="Team Name"
               placeholder="e.g. Hawks"
@@ -182,7 +182,7 @@ export function NewGameForm({ onSubmit, recentRosters, onSelectRoster }: NewGame
               onChange={(e) => setHomeTeam({ ...homeTeam, name: e.target.value })}
               error={errors.homeTeam?.name}
             />
-            <div className="grid grid-cols-2 gap-[var(--space-4)]">
+            <div className="grid grid-cols-2 gap-[var(--space-2)] sm:gap-[var(--space-4)]">
               <Input
                 label="Short Name"
                 placeholder="HWK"
@@ -203,16 +203,16 @@ export function NewGameForm({ onSubmit, recentRosters, onSelectRoster }: NewGame
 
         {/* Away Team */}
         <Card className="border-l-4 border-l-team-away">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-[var(--space-2)]">
+          <CardHeader className="pb-[var(--space-2)] sm:pb-[var(--space-4)]">
+            <CardTitle className="flex items-center gap-[var(--space-2)] text-base sm:text-lg">
               <span
-                className="w-3 h-3 rounded-full"
+                className="w-3 h-3 rounded-full flex-shrink-0"
                 style={{ backgroundColor: awayTeam.color }}
               />
               Away Team
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-[var(--space-4)]">
+          <CardContent className="space-y-[var(--space-3)] sm:space-y-[var(--space-4)]">
             <Input
               label="Team Name"
               placeholder="e.g. Bulls"
@@ -220,7 +220,7 @@ export function NewGameForm({ onSubmit, recentRosters, onSelectRoster }: NewGame
               onChange={(e) => setAwayTeam({ ...awayTeam, name: e.target.value })}
               error={errors.awayTeam?.name}
             />
-            <div className="grid grid-cols-2 gap-[var(--space-4)]">
+            <div className="grid grid-cols-2 gap-[var(--space-2)] sm:gap-[var(--space-4)]">
               <Input
                 label="Short Name"
                 placeholder="BUL"
@@ -244,33 +244,33 @@ export function NewGameForm({ onSubmit, recentRosters, onSelectRoster }: NewGame
       {/* Recent Rosters Quick Select */}
       {recentRosters.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle>Or select from saved rosters</CardTitle>
+          <CardHeader className="pb-[var(--space-2)] sm:pb-[var(--space-4)]">
+            <CardTitle className="text-base sm:text-lg">Or select from saved rosters</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-[var(--space-2)]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-[var(--space-2)]">
               {recentRosters.slice(0, 8).map((roster) => (
-                <div key={roster.id} className="flex gap-[var(--space-1)]">
+                <div key={roster.id} className="flex gap-[var(--space-1)] min-w-0">
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     onClick={() => applyRoster(roster, 'home')}
-                    className="flex items-center gap-[var(--space-2)]"
+                    className="flex-1 sm:flex-none flex items-center justify-start gap-[var(--space-2)] min-w-0"
                   >
                     <span
-                      className="w-2 h-2 rounded-full"
+                      className="w-2 h-2 rounded-full flex-shrink-0"
                       style={{ backgroundColor: roster.color }}
                     />
-                    {roster.teamName}
-                    <span className="text-text-muted text-xs">→ Home</span>
+                    <span className="truncate">{roster.teamName}</span>
+                    <span className="text-text-muted text-xs flex-shrink-0">→ Home</span>
                   </Button>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     onClick={() => applyRoster(roster, 'away')}
-                    className="text-text-muted"
+                    className="text-text-muted flex-shrink-0"
                   >
                     Away
                   </Button>
@@ -282,8 +282,8 @@ export function NewGameForm({ onSubmit, recentRosters, onSelectRoster }: NewGame
       )}
 
       {/* Submit */}
-      <div className="flex justify-end">
-        <Button type="submit" size="lg">
+      <div className="flex justify-center sm:justify-end">
+        <Button type="submit" size="lg" className="w-full sm:w-auto">
           Next: Add Rosters →
         </Button>
       </div>
