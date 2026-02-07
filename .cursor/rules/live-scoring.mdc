@@ -1,0 +1,50 @@
+---
+description: Rules for live scoring feature development
+globs: ["src/app/game/**", "src/components/live-scoring/**"]
+alwaysApply: false
+---
+
+# Live Scoring Feature Rules
+
+## Spec Reference
+Always refer to the live scoring spec: @specs/features/live-scoring.md
+
+## Critical Requirements
+- **Speed**: Any stat in ≤ 2 taps
+- **No Dialogs**: Never block flow with confirmations during play
+- **Always Undo**: Undo button always visible and functional
+- **Auto-Save**: Persist every action to server immediately
+
+## Key Components
+See spec for detailed props:
+- `ScoreHeader` - Always visible score/period/time
+- `TeamPanel` - Player selection by jersey number
+- `QuickStatPanel` - Large buttons for all stat types
+- `PlayByPlayFeed` - Recent plays scrollable list
+- `UndoButton` - Reverses last action
+
+## Data Types (from data-models.md)
+- `PlayEvent` - Base type for all recorded plays
+- `FieldGoalEvent`, `ReboundEvent`, `TurnoverEvent`, etc.
+- `LiveGameState` - Client-side game state
+- `QuickShotInput`, `QuickStatInput` - Simplified entry types
+
+## FIBA Stat Definitions
+
+### Field Goals (Chapter 2)
+- FGA recorded even if blocked
+- Fouled shooter: FGA only if made
+- Tip-in counts as FGA + offensive rebound
+
+### Rebounds (Chapter 4)
+- Offensive = same team as missed shot
+- Defensive = opposite team
+- Team rebound when no player credited
+
+### Turnovers (Chapter 5)
+Types: bad_pass, ball_handling, out_of_bounds, travelling, 
+3_seconds, 5_seconds, 8_seconds, shot_clock, backcourt,
+offensive_foul, double_dribble, carrying, other
+
+## Acceptance Criteria
+All items in spec must pass before feature is complete.

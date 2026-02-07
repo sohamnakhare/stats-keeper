@@ -1,0 +1,11 @@
+---
+description: Deprecated - See live-scoring.mdc for stat entry
+globs: []
+alwaysApply: false
+---
+
+# Deprecated
+
+This rule file has been replaced. See:
+- `live-scoring.mdc` - For recording basketball statistics
+- `game-setup.mdc` - For creating games and rosters

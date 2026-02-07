@@ -1,0 +1,49 @@
+---
+description: General project rules that apply everywhere
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Basketball Stats Keeper - General Rules
+
+## Project Context
+This is a basketball statistics tracking app built following the **FIBA Statisticians' Manual 2024**. The core goal is **speed** - capture any stat in under 2 seconds during live games.
+
+## Key References
+- Project Overview: @specs/overview.md
+- Data Models: @specs/data-models.md
+- FIBA Manual: specs/documents-corporate-fiba-statisticians-manual-2024.pdf
+
+## Core Design Principles
+
+### 1. Speed First
+- Any common stat recordable in ≤ 2 taps
+- No confirmation dialogs during live play
+- Large tap targets (min 48x48px)
+- Response time < 100ms
+
+### 2. FIBA Compliance
+- All stats follow FIBA definitions
+- Support all turnover types (Appendix B)
+- Calculate advanced stats per Appendix C
+- Handle edge cases (goaltending, own basket, etc.)
+
+### 3. Data Persistence
+- SQLite database for server-side storage
+- Auto-save after every action
+- No data loss on crash/close
+- API routes for all data operations
+
+## Implementation Guidelines
+
+### Before Writing Code
+1. Check the spec file for the feature
+2. Use data models from `specs/data-models.md`
+3. Follow FIBA rules for stat definitions
+4. Implement all acceptance criteria
+
+### Code Style
+- TypeScript strict mode - no `any` types
+- Named exports for components
+- Client Components for live scoring (needs state)
+- Large, accessible tap targets

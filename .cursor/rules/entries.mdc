@@ -1,0 +1,11 @@
+---
+description: Deprecated - See live-scoring.mdc for play-by-play entry
+globs: []
+alwaysApply: false
+---
+
+# Deprecated
+
+This rule file has been replaced. See:
+- `live-scoring.mdc` - For recording plays during games
+- `game-summary.mdc` - For reviewing/editing play-by-play

@@ -1,0 +1,245 @@
+@import "tailwindcss";
+
+/* ============================================
+   Basketball Stats Keeper - Design System
+   Inspired by: https://dribbble.com/shots/26073337-Sports-Betting-Web-Design
+   ============================================ */
+
+:root {
+  /* ===== PRIMARY COLORS ===== */
+  --color-primary: #00F5A0;
+  --color-primary-glow: rgba(0, 245, 160, 0.3);
+  --color-primary-muted: #00C77D;
+  
+  /* ===== ACCENT COLORS ===== */
+  --color-accent: #FF6B35;
+  --color-accent-glow: rgba(255, 107, 53, 0.3);
+  --color-highlight: #00D4FF;
+  --color-gold: #FFD700;
+  
+  /* ===== BACKGROUNDS ===== */
+  --color-bg-primary: #0D0D0F;
+  --color-bg-secondary: #141418;
+  --color-bg-tertiary: #1C1C22;
+  --color-bg-hover: #252530;
+  
+  /* ===== SURFACES ===== */
+  --color-surface: #1A1A20;
+  --color-surface-elevated: #222228;
+  --color-border: #2A2A35;
+  --color-border-focus: #00F5A0;
+  
+  /* ===== TEXT ===== */
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #A0A0B0;
+  --color-text-muted: #6B6B7A;
+  --color-text-inverse: #0D0D0F;
+  
+  /* ===== TEAM COLORS (Dynamic) ===== */
+  --color-team-home: #00F5A0;
+  --color-team-away: #FF6B35;
+  
+  /* ===== TYPOGRAPHY ===== */
+  --font-display: 'Bebas Neue', 'Impact', system-ui, sans-serif;
+  --font-heading: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  /* ===== TOUCH TARGETS (Speed-critical) ===== */
+  --tap-target-min: 48px;
+  --tap-target-md: 56px;
+  --tap-target-lg: 64px;
+  --tap-target-xl: 80px;
+  
+  /* ===== SPACING (8px grid) ===== */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  
+  /* ===== BORDER RADIUS ===== */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+  
+  /* ===== SHADOWS ===== */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6);
+  
+  /* ===== GLOW EFFECTS ===== */
+  --glow-primary: 0 0 20px rgba(0, 245, 160, 0.4);
+  --glow-accent: 0 0 20px rgba(255, 107, 53, 0.4);
+  --glow-highlight: 0 0 20px rgba(0, 212, 255, 0.4);
+  
+  /* ===== GRADIENTS ===== */
+  --gradient-primary: linear-gradient(135deg, #00F5A0 0%, #00D4FF 100%);
+  --gradient-accent: linear-gradient(135deg, #FF6B35 0%, #FF3366 100%);
+  --gradient-dark: linear-gradient(180deg, #141418 0%, #0D0D0F 100%);
+  --gradient-surface: linear-gradient(145deg, #1C1C22 0%, #141418 100%);
+  
+  /* ===== ANIMATION ===== */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-instant: 50ms;
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+}
+
+/* ===== TAILWIND THEME INTEGRATION ===== */
+@theme inline {
+  /* Colors */
+  --color-primary: var(--color-primary);
+  --color-primary-glow: var(--color-primary-glow);
+  --color-primary-muted: var(--color-primary-muted);
+  --color-accent: var(--color-accent);
+  --color-accent-glow: var(--color-accent-glow);
+  --color-highlight: var(--color-highlight);
+  --color-gold: var(--color-gold);
+  
+  /* Backgrounds */
+  --color-bg-primary: var(--color-bg-primary);
+  --color-bg-secondary: var(--color-bg-secondary);
+  --color-bg-tertiary: var(--color-bg-tertiary);
+  --color-bg-hover: var(--color-bg-hover);
+  
+  /* Surfaces */
+  --color-surface: var(--color-surface);
+  --color-surface-elevated: var(--color-surface-elevated);
+  --color-border: var(--color-border);
+  --color-border-focus: var(--color-border-focus);
+  
+  /* Text */
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-inverse: var(--color-text-inverse);
+  
+  /* Team */
+  --color-team-home: var(--color-team-home);
+  --color-team-away: var(--color-team-away);
+  
+  /* Fonts */
+  --font-display: var(--font-display);
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+/* ===== BASE STYLES ===== */
+body {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== KEYFRAME ANIMATIONS ===== */
+@keyframes score-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes stat-confirm {
+  0% { 
+    background-color: var(--color-primary); 
+    transform: scale(0.95);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% { 
+    background-color: var(--color-surface); 
+    transform: scale(1);
+  }
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: var(--glow-primary); }
+  50% { box-shadow: 0 0 30px rgba(0, 245, 160, 0.6); }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== UTILITY CLASSES ===== */
+.animate-score-pulse {
+  animation: score-pulse 300ms var(--ease-spring);
+}
+
+.animate-stat-confirm {
+  animation: stat-confirm 300ms var(--ease-out);
+}
+
+.animate-live-pulse {
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slide-up 200ms var(--ease-out);
+}
+
+/* ===== FOCUS STYLES ===== */
+:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===== SCROLLBAR STYLING ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}

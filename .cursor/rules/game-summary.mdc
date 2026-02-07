@@ -1,0 +1,54 @@
+---
+description: Rules for game summary feature development
+globs: ["src/app/game/*/summary/**", "src/components/game-summary/**"]
+alwaysApply: false
+---
+
+# Game Summary Feature Rules
+
+## Spec Reference
+Always refer to the game summary spec: @specs/features/game-summary.md
+
+## Key Requirements
+- Full box score per FIBA format
+- All player statistics displayed
+- Play-by-play log with filtering
+- Edit/delete any recorded event
+- Export to PDF/CSV
+
+## Components
+- `BoxScoreTable` - Standard FIBA box score format
+- `TeamComparisonCard` - Side-by-side team stats
+- `PlayByPlayList` - Filterable game log
+- `AdvancedStatsCard` - FIBA Appendix C stats
+- `ExportOptions` - PDF/CSV export
+
+## FIBA Calculations (Appendix C)
+
+### Efficiency Rating (C.K)
+```
+EFF = PTS - (FGA-FGM) - (FTA-FTM) + REB + AST - TO + ST + BS
+```
+
+### Plus/Minus (C.L)
+Net points scored while player on court.
+
+### Minutes Rounding (C.A)
+- < 30 sec → round down
+- >= 30 sec → round up
+- > 0 but < 1 min → show 1 min
+- 39 min → always round down
+
+## Box Score Columns
+#, Player, MIN, PTS, FG, 3PT, FT, REB (O-D), AST, STL, BLK, TO, PF, +/-
+
+## Team Stats (Appendix C)
+- Points in Paint
+- Fast Break Points
+- Second Chance Points
+- Points off Turnovers
+- Bench Points
+- Lead Changes
+- Times Tied
+- Largest Lead
+- Largest Scoring Run

@@ -1,0 +1,65 @@
+---
+description: Rules for UI components to follow the design system
+globs:
+  - src/components/**/*.tsx
+  - src/app/**/*.tsx
+---
+
+# Design System Rules
+
+## Reference
+Always refer to `specs/design-system.md` for the complete design specification.
+
+## Core Principles
+1. **Dark Theme First** - Use dark backgrounds (`bg-primary`, `bg-secondary`, `surface`)
+2. **Speed Optimized** - All interactive elements must meet touch target minimums
+3. **Neon Sports Aesthetic** - Use glows and vibrant accent colors
+
+## Color Usage
+- **Primary (#00F5A0)**: Success states, points scored, primary actions
+- **Accent (#FF6B35)**: Warnings, fouls, turnovers, away team
+- **Highlight (#00D4FF)**: Links, info states, assists
+
+## Touch Targets (MANDATORY)
+- Minimum interactive element size: `48px` (`--tap-target-min`)
+- Primary action buttons: `64px` (`--tap-target-lg`)
+- Player selection tiles: `80px` (`--tap-target-xl`)
+
+## Typography
+- Display/Scores: `font-display` (Bebas Neue)
+- Headings: `font-heading` (Space Grotesk)
+- Body text: `font-body` (Inter)
+
+## Component Patterns
+
+### Buttons
+```tsx
+// Primary button
+className="min-h-[var(--tap-target-lg)] px-6 bg-primary text-text-inverse font-heading font-semibold rounded-[var(--radius-md)] hover:shadow-[var(--glow-primary)] active:scale-[0.98] transition-all duration-[var(--duration-fast)]"
+
+// Ghost button
+className="min-h-[var(--tap-target-md)] px-4 bg-transparent border border-border text-text-primary rounded-[var(--radius-md)] hover:bg-bg-hover transition-colors duration-[var(--duration-fast)]"
+```
+
+### Cards
+```tsx
+className="bg-surface border border-border rounded-[var(--radius-lg)] p-4 shadow-[var(--shadow-md)]"
+```
+
+### Inputs
+```tsx
+className="h-[var(--tap-target-md)] px-4 bg-bg-tertiary border border-border rounded-[var(--radius-md)] text-text-primary placeholder:text-text-muted focus:border-border-focus focus:ring-2 focus:ring-primary-glow"
+```
+
+## Animation Guidelines
+- Use `--duration-fast` (100ms) for hover states
+- Use `--duration-instant` (50ms) for button presses
+- Always respect `prefers-reduced-motion`
+- Use `animate-stat-confirm` for stat entry feedback
+- Use `animate-score-pulse` for score updates
+
+## Accessibility Checklist
+- [ ] All interactive elements ≥ 48x48px
+- [ ] Focus states use `--color-border-focus`
+- [ ] Text contrast meets WCAG AA (4.5:1)
+- [ ] Animations respect reduced motion preference

@@ -1,0 +1,43 @@
+---
+description: Rules for game setup feature development
+globs: ["src/app/game/new/**", "src/components/game-setup/**"]
+alwaysApply: false
+---
+
+# Game Setup Feature Rules
+
+## Spec Reference
+Always refer to the game setup spec: @specs/features/game-setup.md
+
+## Key Requirements
+- Create game with home/away teams
+- Add players with jersey numbers (0-99, unique per team)
+- Select exactly 5 starters per team
+- Designate 1 captain per team (must be starter)
+- Save team templates for reuse
+
+## Components
+- `NewGameForm` - Initial game creation
+- `RosterEditor` - Add/edit players
+- `StartingFiveSelector` - Visual starter selection
+- `TeamTemplateSelector` - Load saved rosters
+
+## Data Types
+- `Game` - Core game entity
+- `Team` - Team with players
+- `Player` - Number, name, position, captain flag
+- `TeamTemplate` - Saved roster for reuse
+
+## Validation
+| Field | Rules |
+|-------|-------|
+| Team name | Required, 2-30 chars |
+| Short name | Required, exactly 3 chars |
+| Player number | 0-99, unique per team |
+| Starters | Exactly 5 required |
+| Captain | Exactly 1, must be starter |
+
+## UX Goals
+- Setup with templates: ~30 seconds
+- Full setup (new teams): ~5 minutes
+- Clear visual feedback on validation errors

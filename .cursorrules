@@ -1,0 +1,187 @@
+# Basketball Stats Keeper - Cursor Rules
+
+## Project Overview
+A lightweight basketball statistics tracking app built following the **FIBA Statisticians' Manual 2024**. Designed for capturing game stats in real-time at game speed.
+
+## Core Design Goal
+**Speed** - Any stat should be recordable in under 2 seconds (≤2 taps)
+
+## Tech Stack
+- Next.js 14+ with App Router
+- TypeScript (strict mode)
+- Tailwind CSS for styling
+- SQLite with Drizzle ORM (server-side database)
+- Next.js API routes for data persistence
+
+---
+
+## Code Style & Conventions
+
+### TypeScript
+- Use strict TypeScript - never use `any`, prefer `unknown` when type is uncertain
+- Define interfaces for component props, API responses, and data models
+- Use type inference where obvious, explicit types for function parameters/returns
+- Prefer `interface` for object shapes, `type` for unions and complex types
+
+### React Components
+- Use functional components exclusively
+- Prefer named exports: `export function Component()` over `export default`
+- Keep components focused and under 150 lines
+- Extract reusable logic into custom hooks (`use` prefix)
+- Use `'use client'` directive only when client-side features are needed
+
+### File Organization
+```
+src/
+├── app/           # Next.js App Router pages and layouts
+├── components/    # Reusable UI components
+│   ├── ui/        # Base UI primitives (Button, Input, Card)
+│   └── features/  # Feature-specific components
+├── hooks/         # Custom React hooks
+├── lib/           # Utilities, helpers, configurations
+├── types/         # TypeScript type definitions
+└── services/      # API calls and external service integrations
+```
+
+### Naming Conventions
+- **Components**: PascalCase (`UserProfile.tsx`)
+- **Hooks**: camelCase with `use` prefix (`useAuth.ts`)
+- **Utilities**: camelCase (`formatDate.ts`)
+- **Types/Interfaces**: PascalCase (`UserData`, `ApiResponse`)
+- **Constants**: SCREAMING_SNAKE_CASE (`MAX_RETRIES`)
+- **Routes/Folders**: kebab-case (`user-settings/`)
+
+---
+
+## Best Practices
+
+### Performance
+- Use React Server Components by default, client components only when needed
+- Implement proper loading states with Suspense boundaries
+- Optimize images with `next/image`
+- Avoid unnecessary re-renders - memoize with `useMemo`/`useCallback` when beneficial
+
+### Error Handling
+- Always handle loading, error, and empty states
+- Use try-catch for async operations
+- Provide meaningful error messages to users
+- Log errors appropriately for debugging
+
+### Accessibility
+- Use semantic HTML elements (`main`, `nav`, `section`, `article`)
+- Include proper ARIA labels where needed
+- Ensure keyboard navigation works
+- Maintain sufficient color contrast
+- Add alt text to all images
+
+### Security
+- Validate and sanitize user inputs
+- Use environment variables for sensitive data
+- Never expose API keys or secrets in client code
+- Implement proper authentication checks
+
+---
+
+## Code Quality Checklist
+Before suggesting code, ensure:
+- [ ] TypeScript types are properly defined
+- [ ] No `any` types are used
+- [ ] Error states are handled
+- [ ] Loading states are implemented
+- [ ] Code is accessible
+- [ ] Components are reasonably sized
+- [ ] No unnecessary dependencies added
+
+---
+
+## Styling with Tailwind
+- Use Tailwind utility classes for styling
+- Extract repeated patterns into components, not custom CSS
+- Follow mobile-first responsive design (`sm:`, `md:`, `lg:` breakpoints)
+- Use CSS variables for theme colors when needed
+- Maintain consistent spacing using Tailwind's spacing scale
+
+---
+
+## When Writing Code
+1. Explain the approach briefly before implementation
+2. Write clean, readable code with meaningful variable names
+3. Add comments only for complex logic, not obvious code
+4. Keep functions small and single-purpose
+5. Prefer composition over complex conditionals
+
+---
+
+## AI Spec-Driven Development
+
+### How It Works
+This project uses specification files to guide AI code generation. Before implementing any feature, always check for and reference the relevant spec file.
+
+### Spec Files Location
+```
+specs/
+├── overview.md           # Project vision & FIBA compliance goals
+├── data-models.md        # TypeScript interfaces (Game, Player, PlayEvent, etc.)
+└── features/
+    ├── live-scoring.md   # Real-time stat capture during games
+    ├── game-setup.md     # Team/roster creation before games
+    └── game-summary.md   # Box scores and play-by-play review
+```
+
+### Context-Aware Rules
+The `.cursor/rules/` directory contains rule files that automatically attach relevant specs based on which files you're editing:
+- `general.mdc` - Always applied, FIBA compliance & speed principles
+- `live-scoring.mdc` - Applied when working in game scoring files
+- `game-setup.mdc` - Applied when working in team/roster files
+- `game-summary.mdc` - Applied when working in stats display files
+
+### Workflow
+1. **Check the spec** - Read the relevant spec file in `specs/features/`
+2. **Review data models** - Use types from `specs/data-models.md`
+3. **Implement to spec** - Follow the requirements and acceptance criteria
+4. **Verify acceptance criteria** - Ensure all items are checked off
+
+### Before Implementation
+Always ask:
+1. Is there a spec for this feature? → Check `specs/features/`
+2. What data models should I use? → Check `specs/data-models.md`
+3. What are the acceptance criteria? → Check the spec's acceptance section
+4. What components are needed? → Check the spec's UI components section
+
+### Adding New Features
+1. Create a spec file in `specs/features/new-feature.md`
+2. Define requirements, data models, UI components, API endpoints
+3. Add acceptance criteria
+4. Create a rule file in `.cursor/rules/new-feature.mdc` if needed
+5. Implement the feature following the spec
+
+---
+
+## Spec-Driven Development
+
+### Workflow
+1. **Write the spec first** - Define expected behavior before implementation
+2. **Run the spec** - Confirm it fails (red)
+3. **Implement the feature** - Write minimal code to pass
+4. **Refactor** - Clean up while keeping specs green
+
+### Spec File Conventions
+- Co-locate specs with source files: `Component.tsx` → `Component.spec.tsx`
+- Use `.spec.ts(x)` extension for unit/component tests
+- Place E2E specs in `e2e/` directory
+- Name specs descriptively: `describe('Button', () => { it('should emit click event when pressed') })`
+
+### Writing Good Specs
+- Test behavior, not implementation details
+- Use meaningful test descriptions that read like documentation
+- Follow AAA pattern: Arrange, Act, Assert
+- Keep specs focused - one assertion per test when possible
+- Mock external dependencies, not internal logic
+
+### Spec Types
+- **Unit Specs**: Pure functions, utilities (`src/**/*.spec.ts`)
+- **Component Specs**: UI components with React Testing Library (`src/**/*.spec.tsx`)
+- **E2E Specs**: Full user journeys with Playwright (`e2e/*.spec.ts`)
+
+### Before Implementation
+Always ask: "What spec would verify this feature works?"

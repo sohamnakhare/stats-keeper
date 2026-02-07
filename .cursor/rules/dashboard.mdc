@@ -1,0 +1,11 @@
+---
+description: Deprecated - See game-summary.mdc for game statistics display
+globs: []
+alwaysApply: false
+---
+
+# Deprecated
+
+This rule file has been replaced. See:
+- `game-summary.mdc` - For game statistics and box scores
+- `live-scoring.mdc` - For live game stat entry
