@@ -14,7 +14,6 @@ import {
   FoulTypeModal,
   SubstitutionModal,
   ShotTypeModal,
-  AssistAttributionModal,
   type TurnoverType,
   type FoulType,
   type ShotDetails,
@@ -60,14 +59,7 @@ export default function GamePage({ params }: GamePageProps) {
   const [showSubstitutionModal, setShowSubstitutionModal] = useState(false);
   const [showShotTypeModal, setShowShotTypeModal] = useState(false);
   const [shotEventForDetails, setShotEventForDetails] = useState<PlayEventResponse | null>(null);
-
-  // Assist attribution modal state
-  const [showAssistModal, setShowAssistModal] = useState(false);
-  const [madeShot, setMadeShot] = useState<{
-    event: PlayEventResponse;
-    scorerId: string;
-    teamId: string;
-  } | null>(null);
+  const [shotTeamId, setShotTeamId] = useState<string | null>(null);
 
   // Toast state for shot details prompt
   const [showShotToast, setShowShotToast] = useState(false);
@@ -95,6 +87,7 @@ export default function GamePage({ params }: GamePageProps) {
       const event = events.find((e) => e.id === toastEventId);
       if (event) {
         setShotEventForDetails(event);
+        // shotTeamId is already set from handleStatRecord
         setShowShotTypeModal(true);
       }
     }
@@ -109,74 +102,40 @@ export default function GamePage({ params }: GamePageProps) {
         shotType: details.shotType,
         isFastBreak: details.isFastBreak,
         isSecondChance: details.isSecondChance,
+        assistedBy: details.assistedBy,
       });
       setShowShotTypeModal(false);
       setShotEventForDetails(null);
+      setShotTeamId(null);
     },
     [updateEvent]
   );
 
-  // Wrapped recordStat that shows assist modal for made shots, then toast
+  // Wrapped recordStat that shows shot details toast for all shots
   const handleStatRecord = useCallback(
     async (stat: Parameters<typeof recordStat>[0]) => {
-      // Capture the scorer's info before recording (since selection gets cleared)
-      const scorerId = selectedPlayerId;
+      // Capture the team info before recording (since selection gets cleared)
       const scorerTeam = selectedTeam;
       const scorerTeamId = scorerTeam === 'home' ? game?.homeTeamId : game?.awayTeamId;
       
       const savedEvent = await recordStat(stat);
       
-      // For MADE field goals, show assist attribution modal first
-      if (savedEvent && stat.statType === 'shot' && stat.made && scorerId && scorerTeamId) {
-        setMadeShot({
-          event: savedEvent,
-          scorerId,
-          teamId: scorerTeamId,
-        });
-        setShowAssistModal(true);
-      } 
-      // For missed shots, just show the shot details toast
-      else if (savedEvent && stat.statType === 'shot') {
+      // For all shots, show the shot details toast
+      if (savedEvent && stat.statType === 'shot') {
         setToastEventId(savedEvent.id);
+        setShotTeamId(scorerTeamId || null);
         setShowShotToast(true);
       }
     },
-    [recordStat, selectedPlayerId, selectedTeam, game?.homeTeamId, game?.awayTeamId]
+    [recordStat, selectedTeam, game?.homeTeamId, game?.awayTeamId]
   );
-
-  // Handle assist selection
-  const handleAssistSelect = useCallback(
-    async (assisterId: string) => {
-      if (madeShot) {
-        await updateEvent(madeShot.event.id, { assistedBy: assisterId });
-      }
-      // Close assist modal and show shot details toast
-      setShowAssistModal(false);
-      if (madeShot) {
-        setToastEventId(madeShot.event.id);
-        setShowShotToast(true);
-      }
-      setMadeShot(null);
-    },
-    [madeShot, updateEvent]
-  );
-
-  // Handle skipping assist attribution
-  const handleAssistSkip = useCallback(() => {
-    setShowAssistModal(false);
-    // Show shot details toast
-    if (madeShot) {
-      setToastEventId(madeShot.event.id);
-      setShowShotToast(true);
-    }
-    setMadeShot(null);
-  }, [madeShot]);
 
   // Handle event tap from play-by-play (for editing shots)
   const handleEventTap = useCallback((event: PlayEventResponse) => {
     // Only allow editing shot events
     if (event.eventType === 'field_goal_made' || event.eventType === 'field_goal_missed') {
       setShotEventForDetails(event);
+      setShotTeamId(event.teamId);
       setShowShotTypeModal(true);
     }
   }, []);
@@ -510,48 +469,27 @@ export default function GamePage({ params }: GamePageProps) {
               )?.number
             : undefined
         }
-        onSave={handleShotDetailsSave}
-        onCancel={() => {
-          setShowShotTypeModal(false);
-          setShotEventForDetails(null);
-        }}
-      />
-
-      {/* Assist Attribution Modal - shown after made shots */}
-      <AssistAttributionModal
-        isOpen={showAssistModal}
-        scoringEvent={madeShot?.event || null}
-        scorerName={
-          madeShot
-            ? [...(game?.homeTeam.players || []), ...(game?.awayTeam.players || [])].find(
-                (p) => p.id === madeShot.scorerId
-              )?.name
-            : undefined
-        }
-        scorerNumber={
-          madeShot
-            ? [...(game?.homeTeam.players || []), ...(game?.awayTeam.players || [])].find(
-                (p) => p.id === madeShot.scorerId
-              )?.number
-            : undefined
-        }
         teammates={
-          madeShot && game
-            ? (madeShot.teamId === game.homeTeamId
+          shotEventForDetails && shotTeamId && game
+            ? (shotTeamId === game.homeTeamId
                 ? game.homeTeam.players
                 : game.awayTeam.players
-              ).filter((p) => p.isOnCourt && p.id !== madeShot.scorerId)
+              ).filter((p) => p.isOnCourt && p.id !== shotEventForDetails.playerId)
             : []
         }
         teamColor={
-          madeShot && game
-            ? madeShot.teamId === game.homeTeamId
+          shotTeamId && game
+            ? shotTeamId === game.homeTeamId
               ? game.homeTeam.color
               : game.awayTeam.color
             : '#00F5A0'
         }
-        onSelect={handleAssistSelect}
-        onSkip={handleAssistSkip}
+        onSave={handleShotDetailsSave}
+        onCancel={() => {
+          setShowShotTypeModal(false);
+          setShotEventForDetails(null);
+          setShotTeamId(null);
+        }}
       />
 
       {/* Shot Details Toast */}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { PlayEventResponse, EventData } from '@/services/game-api';
+import type { PlayEventResponse, EventData, PlayerData } from '@/services/game-api';
 
 // Shot types per FIBA/data-models.md
 export type ShotType =
@@ -35,6 +35,7 @@ export interface ShotDetails {
   shotType?: ShotType;
   isFastBreak?: boolean;
   isSecondChance?: boolean;
+  assistedBy?: string;
 }
 
 interface ShotTypeModalProps {
@@ -42,6 +43,9 @@ interface ShotTypeModalProps {
   event?: PlayEventResponse | null;
   playerName?: string;
   playerNumber?: number;
+  // Assist props - only used for made shots
+  teammates?: PlayerData[];
+  teamColor?: string;
   onSave: (eventId: string, details: ShotDetails) => void;
   onCancel: () => void;
 }
@@ -51,6 +55,8 @@ export function ShotTypeModal({
   event,
   playerName,
   playerNumber,
+  teammates = [],
+  teamColor = '#00F5A0',
   onSave,
   onCancel,
 }: ShotTypeModalProps) {
@@ -64,6 +70,9 @@ export function ShotTypeModal({
   const [isSecondChance, setIsSecondChance] = useState(
     event?.eventData?.isSecondChance ?? false
   );
+  const [assistedBy, setAssistedBy] = useState<string | undefined>(
+    event?.eventData?.assistedBy as string | undefined
+  );
 
   // Reset state when event changes
   useEffect(() => {
@@ -71,10 +80,12 @@ export function ShotTypeModal({
       setSelectedShotType(event.eventData?.shotType as ShotType | undefined);
       setIsFastBreak(event.eventData?.isFastBreak ?? false);
       setIsSecondChance(event.eventData?.isSecondChance ?? false);
+      setAssistedBy(event.eventData?.assistedBy as string | undefined);
     } else {
       setSelectedShotType(undefined);
       setIsFastBreak(false);
       setIsSecondChance(false);
+      setAssistedBy(undefined);
     }
   }, [event]);
 
@@ -102,11 +113,14 @@ export function ShotTypeModal({
       shotType: selectedShotType,
       isFastBreak,
       isSecondChance,
+      assistedBy,
     });
   };
 
-  const shotMadeOrMissed = event.eventType === 'field_goal_made' ? 'Made' : 'Missed';
+  const isMadeShot = event.eventType === 'field_goal_made';
+  const shotMadeOrMissed = isMadeShot ? 'Made' : 'Missed';
   const points = event.eventData?.points ?? 2;
+  const showAssistSection = isMadeShot && teammates.length > 0;
 
   return (
     <div
@@ -178,6 +192,47 @@ export function ShotTypeModal({
 
         {/* Content */}
         <div className="px-[var(--space-5)] py-[var(--space-4)] space-y-[var(--space-5)]">
+          {/* Assist Attribution - Only for made shots */}
+          {showAssistSection && (
+            <div>
+              <h3 className="text-text-muted text-xs font-medium uppercase tracking-wide mb-[var(--space-3)]">
+                Assisted By
+              </h3>
+              <div className="grid grid-cols-5 gap-[var(--space-2)]">
+                {teammates.map((player) => (
+                  <button
+                    key={player.id}
+                    onClick={() => setAssistedBy(assistedBy === player.id ? undefined : player.id)}
+                    className={`
+                      min-h-[var(--tap-target-lg)]
+                      flex flex-col items-center justify-center
+                      rounded-[var(--radius-md)]
+                      transition-all duration-[var(--duration-fast)]
+                      ${assistedBy === player.id
+                        ? 'bg-primary/20 border-2 border-primary'
+                        : 'bg-bg-tertiary border-2 border-transparent hover:bg-bg-hover'
+                      }
+                      active:scale-[0.98]
+                      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary
+                    `}
+                  >
+                    <span
+                      className="font-display text-lg leading-none"
+                      style={{ color: assistedBy === player.id ? 'var(--color-primary)' : teamColor }}
+                    >
+                      {player.number}
+                    </span>
+                    <span className={`text-xs mt-0.5 max-w-full px-1 truncate ${
+                      assistedBy === player.id ? 'text-primary' : 'text-text-muted'
+                    }`}>
+                      {player.name.split(' ').pop()}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Shot Qualifiers */}
           <div>
             <h3 className="text-text-muted text-xs font-medium uppercase tracking-wide mb-[var(--space-3)]">
