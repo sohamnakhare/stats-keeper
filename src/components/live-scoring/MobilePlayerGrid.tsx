@@ -5,6 +5,7 @@ import type { PlayerData } from '@/services/game-api';
 interface MobilePlayerGridProps {
   players: PlayerData[];
   teamColor: string;
+  playerFouls?: Record<string, number>;
   onPlayerSelect: (playerId: string) => void;
   selectedPlayerId?: string | null;
 }
@@ -12,6 +13,7 @@ interface MobilePlayerGridProps {
 export function MobilePlayerGrid({
   players,
   teamColor,
+  playerFouls = {},
   onPlayerSelect,
   selectedPlayerId,
 }: MobilePlayerGridProps) {
@@ -38,6 +40,7 @@ export function MobilePlayerGrid({
               isSelected={selectedPlayerId === player.id}
               onClick={() => onPlayerSelect(player.id)}
               isOnCourt
+              foulCount={playerFouls[player.id] || 0}
             />
           ))}
           {onCourt.length === 0 && (
@@ -65,6 +68,7 @@ export function MobilePlayerGrid({
               isSelected={selectedPlayerId === player.id}
               onClick={() => onPlayerSelect(player.id)}
               isOnCourt={false}
+              foulCount={playerFouls[player.id] || 0}
             />
           ))}
           {bench.length === 0 && (
@@ -93,14 +97,20 @@ interface PlayerTileProps {
   isSelected: boolean;
   onClick: () => void;
   isOnCourt: boolean;
+  foulCount: number;
 }
 
-function PlayerTile({ player, color, isSelected, onClick, isOnCourt }: PlayerTileProps) {
+function PlayerTile({ player, color, isSelected, onClick, isOnCourt, foulCount }: PlayerTileProps) {
+  // Foul trouble: 4 fouls = warning (yellow), 5 fouls = fouled out (red)
+  const isInFoulTrouble = foulCount >= 4;
+  const isFouledOut = foulCount >= 5;
+
   return (
     <button
       onClick={onClick}
       className={`
         ${isOnCourt ? 'aspect-square' : 'aspect-square'}
+        relative
         flex flex-col items-center justify-center
         bg-bg-tertiary
         border-2
@@ -111,12 +121,13 @@ function PlayerTile({ player, color, isSelected, onClick, isOnCourt }: PlayerTil
           ? '' 
           : 'border-transparent hover:border-border'
         }
+        ${isFouledOut ? 'opacity-50' : ''}
       `}
       style={{
         borderColor: isSelected ? color : undefined,
         boxShadow: isSelected ? `0 0 20px ${color}40` : undefined,
       }}
-      aria-label={`Select ${player.name}, number ${player.number}`}
+      aria-label={`Select ${player.name}, number ${player.number}${foulCount > 0 ? `, ${foulCount} fouls` : ''}`}
       aria-pressed={isSelected}
     >
       <span 
@@ -136,6 +147,26 @@ function PlayerTile({ player, color, isSelected, onClick, isOnCourt }: PlayerTil
       </span>
       {player.isCaptain && (
         <span className="text-[10px] text-gold">★</span>
+      )}
+      
+      {/* Foul dots indicator */}
+      {foulCount > 0 && (
+        <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-0.5">
+          {Array.from({ length: Math.min(foulCount, 5) }).map((_, i) => (
+            <div
+              key={i}
+              className={`
+                w-1.5 h-1.5 rounded-full
+                ${isFouledOut 
+                  ? 'bg-accent' 
+                  : isInFoulTrouble 
+                    ? 'bg-gold' 
+                    : 'bg-text-muted'
+                }
+              `}
+            />
+          ))}
+        </div>
       )}
     </button>
   );

@@ -7,6 +7,8 @@ interface TeamPanelProps {
   shortName: string;
   color: string;
   players: PlayerData[];
+  playerFouls?: Record<string, number>;
+  teamFoulsThisPeriod?: number;
   onPlayerSelect: (playerId: string) => void;
   selectedPlayerId?: string | null;
   isActiveTeam: boolean;
@@ -18,6 +20,8 @@ export function TeamPanel({
   shortName,
   color,
   players,
+  playerFouls = {},
+  teamFoulsThisPeriod = 0,
   onPlayerSelect,
   selectedPlayerId,
   isActiveTeam,
@@ -26,6 +30,9 @@ export function TeamPanel({
   // Separate on-court and bench players
   const onCourt = players.filter((p) => p.isOnCourt);
   const bench = players.filter((p) => !p.isOnCourt);
+
+  // Team is in bonus after 4 team fouls (FIBA rules)
+  const isInBonus = teamFoulsThisPeriod >= 4;
 
   return (
     <div
@@ -47,10 +54,31 @@ export function TeamPanel({
           className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0"
           style={{ backgroundColor: color }}
         />
-        <div className={`min-w-0 ${side === 'away' ? 'text-right' : ''}`}>
-          <h2 className="text-text-primary font-heading font-semibold text-sm sm:text-lg truncate">
-            {shortName}
-          </h2>
+        <div className={`min-w-0 flex-1 ${side === 'away' ? 'text-right' : ''}`}>
+          <div className={`flex items-center gap-[var(--space-2)] ${side === 'away' ? 'flex-row-reverse' : ''}`}>
+            <h2 className="text-text-primary font-heading font-semibold text-sm sm:text-lg truncate">
+              {shortName}
+            </h2>
+            {/* Team fouls this period - dots */}
+            {teamFoulsThisPeriod > 0 && (
+              <div className={`flex items-center gap-0.5 ${side === 'away' ? 'flex-row-reverse' : ''}`}>
+                {Array.from({ length: Math.min(teamFoulsThisPeriod, 5) }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`
+                      w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full
+                      ${isInBonus ? 'bg-gold' : 'bg-text-muted'}
+                    `}
+                  />
+                ))}
+                {isInBonus && (
+                  <span className="text-[9px] sm:text-[10px] text-gold font-bold ml-1 uppercase">
+                    Bonus
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
           <p className="text-text-muted text-[10px] sm:text-xs truncate hidden sm:block">{teamName}</p>
         </div>
       </div>
@@ -69,6 +97,7 @@ export function TeamPanel({
               isSelected={selectedPlayerId === player.id}
               onClick={() => onPlayerSelect(player.id)}
               size="large"
+              foulCount={playerFouls[player.id] || 0}
             />
           ))}
           {onCourt.length === 0 && (
@@ -91,6 +120,7 @@ export function TeamPanel({
               isSelected={selectedPlayerId === player.id}
               onClick={() => onPlayerSelect(player.id)}
               size="small"
+              foulCount={playerFouls[player.id] || 0}
             />
           ))}
           {bench.length === 0 && (
@@ -112,9 +142,10 @@ interface PlayerTileProps {
   isSelected: boolean;
   onClick: () => void;
   size: 'large' | 'small';
+  foulCount: number;
 }
 
-function PlayerTile({ player, color, isSelected, onClick, size }: PlayerTileProps) {
+function PlayerTile({ player, color, isSelected, onClick, size, foulCount }: PlayerTileProps) {
   const sizeClasses = size === 'large' 
     ? 'aspect-square sm:w-[var(--tap-target-xl)] sm:h-[var(--tap-target-xl)] sm:aspect-auto'
     : 'aspect-square sm:w-[var(--tap-target-lg)] sm:h-[var(--tap-target-lg)] sm:aspect-auto';
@@ -122,11 +153,16 @@ function PlayerTile({ player, color, isSelected, onClick, size }: PlayerTileProp
   const numberSize = size === 'large' ? 'text-lg sm:text-2xl' : 'text-base sm:text-xl';
   const nameSize = size === 'large' ? 'text-[10px] sm:text-sm' : 'text-[10px] sm:text-xs';
 
+  // Foul trouble: 4 fouls = warning (yellow), 5 fouls = fouled out (red)
+  const isInFoulTrouble = foulCount >= 4;
+  const isFouledOut = foulCount >= 5;
+
   return (
     <button
       onClick={onClick}
       className={`
         ${sizeClasses}
+        relative
         flex flex-col items-center justify-center
         bg-bg-tertiary
         border-2
@@ -139,12 +175,13 @@ function PlayerTile({ player, color, isSelected, onClick, size }: PlayerTileProp
           ? 'shadow-[var(--glow-primary)]' 
           : 'border-transparent hover:border-border'
         }
+        ${isFouledOut ? 'opacity-50' : ''}
       `}
       style={{
         borderColor: isSelected ? color : undefined,
         boxShadow: isSelected ? `0 0 20px ${color}40` : undefined,
       }}
-      aria-label={`Select ${player.name}, number ${player.number}`}
+      aria-label={`Select ${player.name}, number ${player.number}${foulCount > 0 ? `, ${foulCount} fouls` : ''}`}
       aria-pressed={isSelected}
     >
       <span 
@@ -162,6 +199,26 @@ function PlayerTile({ player, color, isSelected, onClick, size }: PlayerTileProp
       `}>
         {player.name.split(' ').pop()}
       </span>
+      
+      {/* Foul dots indicator */}
+      {foulCount > 0 && (
+        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
+          {Array.from({ length: Math.min(foulCount, 5) }).map((_, i) => (
+            <div
+              key={i}
+              className={`
+                w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full
+                ${isFouledOut 
+                  ? 'bg-accent' 
+                  : isInFoulTrouble 
+                    ? 'bg-gold' 
+                    : 'bg-text-muted'
+                }
+              `}
+            />
+          ))}
+        </div>
+      )}
     </button>
   );
 }

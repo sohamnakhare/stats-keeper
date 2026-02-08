@@ -13,6 +13,8 @@ interface MobileTeamTabsProps {
   onTeamChange: (team: 'home' | 'away') => void;
   homeComplete?: boolean;
   awayComplete?: boolean;
+  homeFoulsThisPeriod?: number;
+  awayFoulsThisPeriod?: number;
 }
 
 export function MobileTeamTabs({
@@ -20,7 +22,12 @@ export function MobileTeamTabs({
   awayTeam,
   activeTeam,
   onTeamChange,
+  homeFoulsThisPeriod = 0,
+  awayFoulsThisPeriod = 0,
 }: MobileTeamTabsProps) {
+  const homeInBonus = homeFoulsThisPeriod >= 4;
+  const awayInBonus = awayFoulsThisPeriod >= 4;
+
   return (
     <div className="flex border-b border-border">
       <button
@@ -46,6 +53,20 @@ export function MobileTeamTabs({
           style={{ backgroundColor: homeTeam.color }}
         />
         {homeTeam.shortName}
+        {/* Team fouls dots */}
+        {homeFoulsThisPeriod > 0 && (
+          <div className="flex items-center gap-0.5 ml-1">
+            {Array.from({ length: Math.min(homeFoulsThisPeriod, 5) }).map((_, i) => (
+              <div
+                key={i}
+                className={`
+                  w-1.5 h-1.5 rounded-full
+                  ${homeInBonus ? 'bg-gold' : 'bg-text-muted'}
+                `}
+              />
+            ))}
+          </div>
+        )}
       </button>
       
       <button
@@ -71,6 +92,20 @@ export function MobileTeamTabs({
           style={{ backgroundColor: awayTeam.color }}
         />
         {awayTeam.shortName}
+        {/* Team fouls dots */}
+        {awayFoulsThisPeriod > 0 && (
+          <div className="flex items-center gap-0.5 ml-1">
+            {Array.from({ length: Math.min(awayFoulsThisPeriod, 5) }).map((_, i) => (
+              <div
+                key={i}
+                className={`
+                  w-1.5 h-1.5 rounded-full
+                  ${awayInBonus ? 'bg-gold' : 'bg-text-muted'}
+                `}
+              />
+            ))}
+          </div>
+        )}
       </button>
     </div>
   );

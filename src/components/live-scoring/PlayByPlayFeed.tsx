@@ -48,6 +48,10 @@ function formatEventDescription(event: PlayEventResponse): string {
       return event.eventData?.turnoverType 
         ? `T/O (${event.eventData.turnoverType.replace('_', ' ')})`
         : 'Turnover';
+    case 'foul':
+      return event.eventData?.foulType 
+        ? `${event.eventData.foulType.charAt(0).toUpperCase()}${event.eventData.foulType.slice(1)} Foul`
+        : 'Foul';
     default:
       return EVENT_LABELS[event.eventType] || event.eventType;
   }
@@ -83,6 +87,15 @@ export function PlayByPlayFeed({
     
     const team = teamId === homeTeam.id ? homeTeam : awayTeam;
     return team.players.find((p) => p.id === playerId);
+  };
+
+  // Helper to get player info from opposing team (for drawnBy)
+  const getOpponentPlayerInfo = (playerId: string | null, teamId: string) => {
+    if (!playerId) return null;
+    
+    // The opponent is the OTHER team
+    const opponentTeam = teamId === homeTeam.id ? awayTeam : homeTeam;
+    return opponentTeam.players.find((p) => p.id === playerId);
   };
 
   if (events.length === 0) {
@@ -121,7 +134,13 @@ export function PlayByPlayFeed({
             const player = getPlayerInfo(event.playerId, event.teamId);
             const isScoring = event.eventType === 'field_goal_made' || event.eventType === 'free_throw_made';
             const isShotEvent = event.eventType === 'field_goal_made' || event.eventType === 'field_goal_missed';
+            const isFoulEvent = event.eventType === 'foul';
             const isClickable = isShotEvent && onEventTap;
+
+            // Get fouled on player info (from opposing team)
+            const fouledOnPlayer = isFoulEvent && event.eventData?.drawnBy
+              ? getOpponentPlayerInfo(event.eventData.drawnBy, event.teamId)
+              : null;
 
             return (
               <div
@@ -157,6 +176,9 @@ export function PlayByPlayFeed({
                     <span className="text-text-primary font-medium">#{player.number} </span>
                   )}
                   <span className="text-text-secondary">{formatEventDescription(event)}</span>
+                  {fouledOnPlayer && (
+                    <span className="text-accent"> (on #{fouledOnPlayer.number})</span>
+                  )}
                 </div>
 
                 {/* Points badge */}
@@ -221,6 +243,7 @@ export function PlayByPlayFeed({
           const player = getPlayerInfo(event.playerId, event.teamId);
           const isShotEvent = event.eventType === 'field_goal_made' || event.eventType === 'field_goal_missed';
           const isMadeShot = event.eventType === 'field_goal_made';
+          const isFoulEvent = event.eventType === 'foul';
           const isClickable = isShotEvent && onEventTap;
           
           // Show shot details badges if present
@@ -230,6 +253,11 @@ export function PlayByPlayFeed({
           // Get assister info for made shots
           const assister = isMadeShot && shotDetails?.assistedBy 
             ? getPlayerInfo(shotDetails.assistedBy, event.teamId) 
+            : null;
+
+          // Get fouled on player info (from opposing team)
+          const fouledOnPlayer = isFoulEvent && event.eventData?.drawnBy
+            ? getOpponentPlayerInfo(event.eventData.drawnBy, event.teamId)
             : null;
 
           return (
@@ -290,6 +318,13 @@ export function PlayByPlayFeed({
                   {assister && (
                     <span className="text-highlight text-sm">
                       (AST #{assister.number})
+                    </span>
+                  )}
+
+                  {/* Fouled on attribution for fouls */}
+                  {fouledOnPlayer && (
+                    <span className="text-accent text-sm">
+                      (on #{fouledOnPlayer.number})
                     </span>
                   )}
                   
