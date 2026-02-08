@@ -25,6 +25,8 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     const baseStyles = `
       rounded-[var(--radius-lg)] 
       p-[var(--space-4)]
+      overflow-hidden
+      min-w-0
     `;
 
     return (
@@ -82,7 +84,7 @@ interface CardContentProps extends HTMLAttributes<HTMLDivElement> {}
 export const CardContent = forwardRef<HTMLDivElement, CardContentProps>(
   ({ className = '', children, ...props }, ref) => {
     return (
-      <div ref={ref} className={className} {...props}>
+      <div ref={ref} className={`min-w-0 ${className}`} {...props}>
         {children}
       </div>
     );

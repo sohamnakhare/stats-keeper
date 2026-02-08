@@ -51,7 +51,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       : '';
 
     return (
-      <div className="flex flex-col gap-[var(--space-1)]">
+      <div className="flex flex-col gap-[var(--space-1)] min-w-0">
         {label && (
           <label
             htmlFor={inputId}
@@ -63,7 +63,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           id={inputId}
-          className={`${baseStyles} ${sizeStyles[inputSize]} ${errorStyles} ${className}`}
+          className={`${baseStyles} ${sizeStyles[inputSize]} ${errorStyles} ${className} max-w-full`}
           {...props}
         />
         {error && (
