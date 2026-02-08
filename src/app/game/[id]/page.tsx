@@ -602,6 +602,7 @@ export default function GamePage({ params }: GamePageProps) {
           <SubstitutionModal
             playerOut={selectedPlayer}
             benchPlayers={benchPlayersForSelectedTeam}
+            playerFouls={playerFouls}
             teamColor={selectedTeamColor}
             isOpen={showSubstitutionModal}
             onConfirm={handleSubstitutionConfirm}

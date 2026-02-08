@@ -3,9 +3,12 @@
 import { useEffect } from 'react';
 import type { PlayerData } from '@/services/game-api';
 
+const FOUL_OUT_LIMIT = 5;
+
 interface SubstitutionModalProps {
   playerOut: PlayerData;
   benchPlayers: PlayerData[];
+  playerFouls: Record<string, number>;
   teamColor: string;
   isOpen: boolean;
   onConfirm: (playerInId: string) => void;
@@ -15,6 +18,7 @@ interface SubstitutionModalProps {
 export function SubstitutionModal({
   playerOut,
   benchPlayers,
+  playerFouls,
   teamColor,
   isOpen,
   onConfirm,
@@ -119,42 +123,55 @@ export function SubstitutionModal({
             </p>
           ) : (
             <div className="grid grid-cols-2 gap-[var(--space-2)]">
-              {benchPlayers.map((player) => (
-                <button
-                  key={player.id}
-                  onClick={() => onConfirm(player.id)}
-                  className="
-                    min-h-[var(--tap-target-xl)]
-                    flex flex-col items-center justify-center
-                    bg-bg-tertiary
-                    border-2 border-transparent
-                    rounded-[var(--radius-lg)]
-                    transition-all duration-[var(--duration-fast)]
-                    hover:border-primary/50
-                    hover:bg-bg-hover
-                    active:scale-[0.98]
-                    focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary
-                  "
-                  style={{
-                    ['--hover-border' as string]: teamColor,
-                  }}
-                >
-                  <span
-                    className="font-display text-2xl leading-none"
-                    style={{ color: teamColor }}
+              {benchPlayers.map((player) => {
+                const foulCount = playerFouls[player.id] || 0;
+                const isFouledOut = foulCount >= FOUL_OUT_LIMIT;
+
+                return (
+                  <button
+                    key={player.id}
+                    onClick={() => !isFouledOut && onConfirm(player.id)}
+                    disabled={isFouledOut}
+                    className={`
+                      min-h-[var(--tap-target-xl)]
+                      flex flex-col items-center justify-center
+                      bg-bg-tertiary
+                      border-2 border-transparent
+                      rounded-[var(--radius-lg)]
+                      transition-all duration-[var(--duration-fast)]
+                      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary
+                      ${isFouledOut
+                        ? 'opacity-50 cursor-not-allowed'
+                        : 'hover:border-primary/50 hover:bg-bg-hover active:scale-[0.98]'
+                      }
+                    `}
+                    style={{
+                      ['--hover-border' as string]: teamColor,
+                    }}
+                    aria-disabled={isFouledOut}
+                    title={isFouledOut ? 'Player fouled out' : undefined}
                   >
-                    {player.number}
-                  </span>
-                  <span className="text-xs text-text-muted mt-1 max-w-full px-2 truncate">
-                    {player.name}
-                  </span>
-                  {player.position && (
-                    <span className="text-[10px] text-text-muted/60">
-                      {player.position}
+                    <span
+                      className="font-display text-2xl leading-none"
+                      style={{ color: isFouledOut ? 'var(--color-text-muted)' : teamColor }}
+                    >
+                      {player.number}
                     </span>
-                  )}
-                </button>
-              ))}
+                    <span className="text-xs text-text-muted mt-1 max-w-full px-2 truncate">
+                      {player.name}
+                    </span>
+                    {isFouledOut ? (
+                      <span className="text-[10px] text-danger font-medium">
+                        FOULED OUT
+                      </span>
+                    ) : player.position ? (
+                      <span className="text-[10px] text-text-muted/60">
+                        {player.position}
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

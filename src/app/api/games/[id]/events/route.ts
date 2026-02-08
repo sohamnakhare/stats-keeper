@@ -1,7 +1,9 @@
 // Events API - GET all events, POST new event for a game
 import { NextResponse } from 'next/server';
 import { db, playEvents, players } from '@/db';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
+
+const FOUL_OUT_LIMIT = 5;
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -64,6 +66,25 @@ export async function POST(request: Request, { params }: RouteParams) {
       if (!playerIn || !playerOut) {
         return NextResponse.json(
           { error: 'Substitution requires playerIn and playerOut' },
+          { status: 400 }
+        );
+      }
+
+      // Check if playerIn has fouled out (5+ fouls per FIBA rules)
+      const foulEvents = await db
+        .select()
+        .from(playEvents)
+        .where(
+          and(
+            eq(playEvents.gameId, gameId),
+            eq(playEvents.playerId, playerIn),
+            eq(playEvents.eventType, 'foul')
+          )
+        );
+
+      if (foulEvents.length >= FOUL_OUT_LIMIT) {
+        return NextResponse.json(
+          { error: 'Cannot substitute in a fouled out player' },
           { status: 400 }
         );
       }
