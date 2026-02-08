@@ -63,6 +63,29 @@ export interface PlayEventResponse {
   playerId: string | null;
   eventType: EventType;
   eventData: EventData | null;
+  /** Indicates the event is pending server confirmation (optimistic update) */
+  isPending?: boolean;
+}
+
+// ============================================
+// Optimistic Update Helpers
+// ============================================
+
+let tempIdCounter = 0;
+
+/**
+ * Generate a temporary ID for optimistic updates
+ * These IDs are prefixed with 'temp_' to distinguish from server-generated UUIDs
+ */
+export function generateTempId(): string {
+  return `temp_${Date.now()}_${++tempIdCounter}`;
+}
+
+/**
+ * Check if an ID is a temporary (optimistic) ID
+ */
+export function isTempId(id: string): boolean {
+  return id.startsWith('temp_');
 }
 
 export interface GameUpdateInput {

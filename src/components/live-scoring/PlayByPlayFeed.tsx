@@ -162,11 +162,12 @@ export function PlayByPlayFeed({
                   text-xs
                   ${index === 0 ? 'animate-slide-up' : ''}
                   ${isClickable ? 'cursor-pointer active:bg-bg-hover' : ''}
+                  ${event.isPending ? 'opacity-70' : ''}
                 `}
               >
-                {/* Team color dot */}
+                {/* Team color dot - pulses when pending */}
                 <div
-                  className="w-1.5 h-1.5 rounded-full shrink-0"
+                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${event.isPending ? 'animate-pulse' : ''}`}
                   style={{ backgroundColor: team.color }}
                 />
 
@@ -271,6 +272,7 @@ export function PlayByPlayFeed({
                 rounded-[var(--radius-md)]
                 ${index === 0 ? 'animate-slide-up' : ''}
                 ${isClickable ? 'cursor-pointer hover:bg-bg-hover transition-colors' : ''}
+                ${event.isPending ? 'opacity-70' : ''}
               `}
               role={isClickable ? 'button' : undefined}
               tabIndex={isClickable ? 0 : undefined}
@@ -288,9 +290,9 @@ export function PlayByPlayFeed({
                 <span>{event.gameTime}</span>
               </div>
 
-              {/* Team Indicator */}
+              {/* Team Indicator - pulses when pending */}
               <div
-                className="w-2 h-2 rounded-full shrink-0"
+                className={`w-2 h-2 rounded-full shrink-0 ${event.isPending ? 'animate-pulse' : ''}`}
                 style={{ backgroundColor: team.color }}
               />
 

@@ -9,6 +9,7 @@ import {
   deleteEvent,
   updateEvent as updateEventApi,
   updateGameState,
+  generateTempId,
   type GameWithTeams,
   type PlayEventResponse,
   type PlayEventInput,
@@ -183,6 +184,7 @@ export function useLiveGame(gameId: string, clockDisplayTime?: string) {
   }, []);
 
   // Record a stat - returns the saved event for shot toast functionality
+  // Uses optimistic updates for instant UI response
   const recordStat = useCallback(
     async (input: QuickStatInput): Promise<PlayEventResponse | null> => {
       if (!state.game || !state.selectedPlayerId || !state.selectedTeam) {
@@ -262,23 +264,49 @@ export function useLiveGame(gameId: string, clockDisplayTime?: string) {
         eventData,
       };
 
-      setState((prev) => ({ ...prev, isSaving: true }));
+      // Create optimistic event with temp ID
+      const tempId = generateTempId();
+      const optimisticEvent: PlayEventResponse = {
+        id: tempId,
+        gameId,
+        period: eventInput.period,
+        gameTime: eventInput.gameTime,
+        timestamp: new Date().toISOString(),
+        teamId: eventInput.teamId,
+        playerId: eventInput.playerId || null,
+        eventType: eventInput.eventType,
+        eventData: eventInput.eventData || null,
+        isPending: true,
+      };
+
+      // Optimistic update: add event immediately and clear selection
+      setState((prev) => ({
+        ...prev,
+        events: [optimisticEvent, ...prev.events],
+        isSaving: true,
+        selectedPlayerId: null,
+        selectedTeam: null,
+      }));
 
       try {
+        // Save to server in background
         const savedEvent = await saveEvent(gameId, eventInput);
 
+        // Reconcile: replace temp event with server response
         setState((prev) => ({
           ...prev,
-          events: [savedEvent, ...prev.events],
+          events: prev.events.map((e) =>
+            e.id === tempId ? { ...savedEvent, isPending: false } : e
+          ),
           isSaving: false,
-          selectedPlayerId: null,
-          selectedTeam: null,
         }));
 
         return savedEvent;
       } catch (error) {
+        // Rollback: remove the optimistic event on failure
         setState((prev) => ({
           ...prev,
+          events: prev.events.filter((e) => e.id !== tempId),
           isSaving: false,
           error: error instanceof Error ? error.message : 'Failed to save stat',
         }));
@@ -289,6 +317,7 @@ export function useLiveGame(gameId: string, clockDisplayTime?: string) {
   );
 
   // Record a substitution
+  // Uses optimistic updates for instant UI response
   const recordSubstitution = useCallback(
     async (playerOutId: string, playerInId: string) => {
       if (!state.game || !state.selectedTeam) {
@@ -312,131 +341,246 @@ export function useLiveGame(gameId: string, clockDisplayTime?: string) {
         },
       };
 
-      setState((prev) => ({ ...prev, isSaving: true }));
+      // Create optimistic event with temp ID
+      const tempId = generateTempId();
+      const optimisticEvent: PlayEventResponse = {
+        id: tempId,
+        gameId,
+        period: eventInput.period,
+        gameTime: eventInput.gameTime,
+        timestamp: new Date().toISOString(),
+        teamId: eventInput.teamId,
+        playerId: eventInput.playerId || null,
+        eventType: eventInput.eventType,
+        eventData: eventInput.eventData || null,
+        isPending: true,
+      };
+
+      // Helper to update player isOnCourt status
+      const updatePlayers = (players: PlayerData[]) =>
+        players.map((p) => {
+          if (p.id === playerOutId) {
+            return { ...p, isOnCourt: false };
+          }
+          if (p.id === playerInId) {
+            return { ...p, isOnCourt: true };
+          }
+          return p;
+        });
+
+      // Helper to reverse player isOnCourt status (for rollback)
+      const reverseUpdatePlayers = (players: PlayerData[]) =>
+        players.map((p) => {
+          if (p.id === playerOutId) {
+            return { ...p, isOnCourt: true };
+          }
+          if (p.id === playerInId) {
+            return { ...p, isOnCourt: false };
+          }
+          return p;
+        });
+
+      // Optimistic update: add event and update player status immediately
+      setState((prev) => {
+        if (!prev.game) return { ...prev, isSaving: true };
+
+        return {
+          ...prev,
+          events: [optimisticEvent, ...prev.events],
+          game: {
+            ...prev.game,
+            homeTeam: {
+              ...prev.game.homeTeam,
+              players: updatePlayers(prev.game.homeTeam.players),
+            },
+            awayTeam: {
+              ...prev.game.awayTeam,
+              players: updatePlayers(prev.game.awayTeam.players),
+            },
+          },
+          isSaving: true,
+          selectedPlayerId: null,
+          selectedTeam: null,
+        };
+      });
 
       try {
+        // Save to server in background
         const savedEvent = await saveEvent(gameId, eventInput);
 
-        // Update local state to reflect the substitution
+        // Reconcile: replace temp event with server response
+        setState((prev) => ({
+          ...prev,
+          events: prev.events.map((e) =>
+            e.id === tempId ? { ...savedEvent, isPending: false } : e
+          ),
+          isSaving: false,
+        }));
+      } catch (error) {
+        // Rollback: remove event and reverse player status
         setState((prev) => {
-          if (!prev.game) return { ...prev, isSaving: false };
-
-          const updatePlayers = (players: PlayerData[]) =>
-            players.map((p) => {
-              if (p.id === playerOutId) {
-                return { ...p, isOnCourt: false };
-              }
-              if (p.id === playerInId) {
-                return { ...p, isOnCourt: true };
-              }
-              return p;
-            });
+          if (!prev.game) {
+            return {
+              ...prev,
+              events: prev.events.filter((e) => e.id !== tempId),
+              isSaving: false,
+              error: error instanceof Error ? error.message : 'Failed to record substitution',
+            };
+          }
 
           return {
             ...prev,
-            events: [savedEvent, ...prev.events],
+            events: prev.events.filter((e) => e.id !== tempId),
             game: {
               ...prev.game,
               homeTeam: {
                 ...prev.game.homeTeam,
-                players: updatePlayers(prev.game.homeTeam.players),
+                players: reverseUpdatePlayers(prev.game.homeTeam.players),
               },
               awayTeam: {
                 ...prev.game.awayTeam,
-                players: updatePlayers(prev.game.awayTeam.players),
+                players: reverseUpdatePlayers(prev.game.awayTeam.players),
               },
             },
             isSaving: false,
-            selectedPlayerId: null,
-            selectedTeam: null,
+            error: error instanceof Error ? error.message : 'Failed to record substitution',
           };
         });
-      } catch (error) {
-        setState((prev) => ({
-          ...prev,
-          isSaving: false,
-          error: error instanceof Error ? error.message : 'Failed to record substitution',
-        }));
       }
     },
     [gameId, state.game, state.selectedTeam, gameTime]
   );
 
   // Undo last action
+  // Uses optimistic updates for instant UI response
   const undoLastAction = useCallback(async () => {
     if (!computed.lastEvent) return;
 
-    setState((prev) => ({ ...prev, isSaving: true }));
+    // Skip pending events - they're not yet confirmed by server
+    if (computed.lastEvent.isPending) return;
 
-    try {
-      await deleteEvent(computed.lastEvent.id);
+    // Store the event to restore on failure
+    const eventToUndo = computed.lastEvent;
+    const isSubstitution = eventToUndo.eventType === 'substitution' && eventToUndo.eventData;
+    const { playerOut, playerIn } = eventToUndo.eventData || {};
 
-      // Handle substitution undo - reverse the isOnCourt changes locally
-      if (computed.lastEvent.eventType === 'substitution' && computed.lastEvent.eventData) {
-        const { playerOut, playerIn } = computed.lastEvent.eventData;
+    // Helper to reverse player isOnCourt status (for substitution undo)
+    const reverseSubstitution = (players: PlayerData[]) =>
+      players.map((p) => {
+        if (p.id === playerOut) {
+          return { ...p, isOnCourt: true }; // Back on court
+        }
+        if (p.id === playerIn) {
+          return { ...p, isOnCourt: false }; // Back to bench
+        }
+        return p;
+      });
 
-        setState((prev) => {
-          if (!prev.game) return { ...prev, isSaving: false };
+    // Helper to restore substitution (for rollback on failure)
+    const restoreSubstitution = (players: PlayerData[]) =>
+      players.map((p) => {
+        if (p.id === playerOut) {
+          return { ...p, isOnCourt: false };
+        }
+        if (p.id === playerIn) {
+          return { ...p, isOnCourt: true };
+        }
+        return p;
+      });
 
-          const updatePlayers = (players: PlayerData[]) =>
-            players.map((p) => {
-              if (p.id === playerOut) {
-                return { ...p, isOnCourt: true }; // Back on court
-              }
-              if (p.id === playerIn) {
-                return { ...p, isOnCourt: false }; // Back to bench
-              }
-              return p;
-            });
+    // Optimistic update: remove event immediately
+    setState((prev) => {
+      if (!prev.game) {
+        return {
+          ...prev,
+          events: prev.events.filter((e) => e.id !== eventToUndo.id),
+          isSaving: true,
+        };
+      }
 
-          return {
-            ...prev,
-            events: prev.events.filter((e) => e.id !== computed.lastEvent?.id),
-            game: {
+      return {
+        ...prev,
+        events: prev.events.filter((e) => e.id !== eventToUndo.id),
+        game: isSubstitution
+          ? {
               ...prev.game,
               homeTeam: {
                 ...prev.game.homeTeam,
-                players: updatePlayers(prev.game.homeTeam.players),
+                players: reverseSubstitution(prev.game.homeTeam.players),
               },
               awayTeam: {
                 ...prev.game.awayTeam,
-                players: updatePlayers(prev.game.awayTeam.players),
+                players: reverseSubstitution(prev.game.awayTeam.players),
               },
-            },
-            isSaving: false,
-          };
-        });
-      } else {
-        setState((prev) => ({
-          ...prev,
-          events: prev.events.filter((e) => e.id !== computed.lastEvent?.id),
-          isSaving: false,
-        }));
-      }
+            }
+          : prev.game,
+        isSaving: true,
+      };
+    });
+
+    try {
+      // Delete from server in background
+      await deleteEvent(eventToUndo.id);
+
+      setState((prev) => ({ ...prev, isSaving: false }));
     } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        isSaving: false,
-        error: error instanceof Error ? error.message : 'Failed to undo',
-      }));
+      // Rollback: restore the event on failure
+      setState((prev) => {
+        if (!prev.game) {
+          return {
+            ...prev,
+            events: [eventToUndo, ...prev.events],
+            isSaving: false,
+            error: error instanceof Error ? error.message : 'Failed to undo',
+          };
+        }
+
+        return {
+          ...prev,
+          events: [eventToUndo, ...prev.events],
+          game: isSubstitution
+            ? {
+                ...prev.game,
+                homeTeam: {
+                  ...prev.game.homeTeam,
+                  players: restoreSubstitution(prev.game.homeTeam.players),
+                },
+                awayTeam: {
+                  ...prev.game.awayTeam,
+                  players: restoreSubstitution(prev.game.awayTeam.players),
+                },
+              }
+            : prev.game,
+          isSaving: false,
+          error: error instanceof Error ? error.message : 'Failed to undo',
+        };
+      });
     }
   }, [computed.lastEvent]);
 
   // Update period
+  // Uses optimistic updates for instant UI response
   const updatePeriod = useCallback(
     async (period: Period) => {
       if (!state.game) return;
 
-      try {
-        await updateGameState(gameId, { currentPeriod: period });
+      // Store previous value for rollback
+      const previousPeriod = state.game.currentPeriod;
 
-        setState((prev) => ({
-          ...prev,
-          game: prev.game ? { ...prev.game, currentPeriod: period } : null,
-        }));
+      // Optimistic update: change period immediately
+      setState((prev) => ({
+        ...prev,
+        game: prev.game ? { ...prev.game, currentPeriod: period } : null,
+      }));
+
+      try {
+        // Save to server in background
+        await updateGameState(gameId, { currentPeriod: period });
       } catch (error) {
+        // Rollback on failure
         setState((prev) => ({
           ...prev,
+          game: prev.game ? { ...prev.game, currentPeriod: previousPeriod } : null,
           error: error instanceof Error ? error.message : 'Failed to update period',
         }));
       }
@@ -445,22 +589,32 @@ export function useLiveGame(gameId: string, clockDisplayTime?: string) {
   );
 
   // Update possession
+  // Uses optimistic updates for instant UI response
   const updatePossession = useCallback(
     async (possession: 'home' | 'away' | null) => {
       if (!state.game) return;
 
-      try {
-        await updateGameState(gameId, { currentPossession: possession });
+      // Store previous value for rollback
+      const previousPossession = state.game.currentPossession;
 
+      // Optimistic update: change possession immediately
+      setState((prev) => ({
+        ...prev,
+        game: prev.game
+          ? { ...prev.game, currentPossession: possession }
+          : null,
+      }));
+
+      try {
+        // Save to server in background
+        await updateGameState(gameId, { currentPossession: possession });
+      } catch (error) {
+        // Rollback on failure
         setState((prev) => ({
           ...prev,
           game: prev.game
-            ? { ...prev.game, currentPossession: possession }
+            ? { ...prev.game, currentPossession: previousPossession }
             : null,
-        }));
-      } catch (error) {
-        setState((prev) => ({
-          ...prev,
           error:
             error instanceof Error ? error.message : 'Failed to update possession',
         }));
@@ -470,32 +624,60 @@ export function useLiveGame(gameId: string, clockDisplayTime?: string) {
   );
 
   // Update event data (for shot details, etc.)
+  // Uses optimistic updates for instant UI response
   const updateEvent = useCallback(
-    async (eventId: string, eventData: Partial<EventData>) => {
-      setState((prev) => ({ ...prev, isSaving: true }));
+    async (eventId: string, newEventData: Partial<EventData>) => {
+      // Find the current event to store previous state for rollback
+      const currentEvent = state.events.find((e) => e.id === eventId);
+      if (!currentEvent) return null;
+
+      const previousEventData = currentEvent.eventData;
+
+      // Optimistic update: merge new data immediately
+      setState((prev) => ({
+        ...prev,
+        events: prev.events.map((e) =>
+          e.id === eventId
+            ? {
+                ...e,
+                eventData: { ...e.eventData, ...newEventData },
+                isPending: true,
+              }
+            : e
+        ),
+        isSaving: true,
+      }));
 
       try {
-        const updatedEvent = await updateEventApi(eventId, eventData);
+        // Save to server in background
+        const updatedEvent = await updateEventApi(eventId, newEventData);
 
+        // Reconcile with server response
         setState((prev) => ({
           ...prev,
           events: prev.events.map((e) =>
-            e.id === eventId ? updatedEvent : e
+            e.id === eventId ? { ...updatedEvent, isPending: false } : e
           ),
           isSaving: false,
         }));
 
         return updatedEvent;
       } catch (error) {
+        // Rollback on failure
         setState((prev) => ({
           ...prev,
+          events: prev.events.map((e) =>
+            e.id === eventId
+              ? { ...e, eventData: previousEventData, isPending: false }
+              : e
+          ),
           isSaving: false,
           error: error instanceof Error ? error.message : 'Failed to update event',
         }));
         return null;
       }
     },
-    []
+    [state.events]
   );
 
   return {
