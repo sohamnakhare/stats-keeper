@@ -128,8 +128,176 @@ export function ScoreHeader({
       px-[var(--space-2)] sm:px-[var(--space-4)]
       py-[var(--space-2)] sm:py-[var(--space-3)]
     ">
+      <div className="max-w-7xl mx-auto flex flex-col gap-[var(--space-2)] sm:gap-[var(--space-3)]">
+        {/* Row 1: Timer & Controls */}
+        {clock && (
+          <div className="flex items-center justify-center gap-[var(--space-4)] sm:gap-[var(--space-6)]">
+            {/* Clock Controls - Play/Pause */}
+            {clock.isRunning ? (
+              <button
+                onClick={clock.onPause}
+                disabled={isUpdatingClock}
+                className="
+                  flex items-center justify-center
+                  w-12 h-12 sm:w-14 sm:h-14
+                  rounded-full
+                  bg-accent/20
+                  hover:bg-accent/30
+                  active:scale-95
+                  transition-all duration-100
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                "
+                aria-label="Pause clock"
+              >
+                <svg
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-accent"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <rect x="6" y="4" width="4" height="16" rx="1" />
+                  <rect x="14" y="4" width="4" height="16" rx="1" />
+                </svg>
+              </button>
+            ) : (
+              <button
+                onClick={clock.onStart}
+                disabled={isUpdatingClock}
+                className="
+                  flex items-center justify-center
+                  w-12 h-12 sm:w-14 sm:h-14
+                  rounded-full
+                  bg-primary/20
+                  hover:bg-primary/30
+                  active:scale-95
+                  transition-all duration-100
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                "
+                aria-label="Start clock"
+              >
+                <svg
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-primary"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </button>
+            )}
+
+            {/* Clock Display */}
+            <div className="flex flex-col items-center">
+              {isEditingClock ? (
+                <input
+                  ref={clockInputRef}
+                  type="text"
+                  value={clockEditValue}
+                  onChange={(e) => setClockEditValue(e.target.value)}
+                  onBlur={handleClockEditSubmit}
+                  onKeyDown={handleClockKeyDown}
+                  className="
+                    font-display text-[36px] sm:text-[48px] leading-none tracking-tight
+                    text-text-primary text-center
+                    bg-transparent border-b-2 border-primary
+                    outline-none
+                    w-[5ch]
+                  "
+                  placeholder="MM:SS"
+                  aria-label="Edit clock time"
+                />
+              ) : isUpdatingClock ? (
+                <div className="flex items-center gap-[var(--space-2)]">
+                  <span
+                    className="
+                      font-display text-[36px] sm:text-[48px] leading-none tracking-tight
+                      text-text-muted
+                    "
+                  >
+                    {pendingClockValue}
+                  </span>
+                  <svg
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-primary animate-spin"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                </div>
+              ) : (
+                <button
+                  onClick={handleClockClick}
+                  disabled={!clock.onSetTime}
+                  className={`
+                    font-display text-[36px] sm:text-[48px] leading-none tracking-tight
+                    transition-colors duration-[var(--duration-fast)]
+                    ${clock.isRunning ? 'text-primary' : 'text-text-primary'}
+                    ${clock.onSetTime ? 'hover:opacity-70 cursor-pointer' : 'cursor-default'}
+                  `}
+                  aria-label="Click to edit clock time"
+                >
+                  {clock.displayTime}
+                </button>
+              )}
+              {/* Live indicator */}
+              <div className="flex items-center gap-1 mt-1">
+                <span className={`
+                  w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full
+                  ${clock.isRunning ? 'bg-[#FF3366] animate-live-pulse' : 'bg-text-muted'}
+                `} />
+                <span className={`
+                  text-[10px] sm:text-xs font-semibold uppercase
+                  ${clock.isRunning ? 'text-[#FF3366]' : 'text-text-muted'}
+                `}>
+                  {clock.isRunning ? 'Live' : 'Paused'}
+                </span>
+              </div>
+            </div>
+
+            {/* Clock Controls - Reset */}
+            <button
+              onClick={clock.onReset}
+              disabled={isUpdatingClock}
+              className="
+                flex items-center justify-center
+                w-12 h-12 sm:w-14 sm:h-14
+                rounded-full
+                bg-text-muted/10
+                hover:bg-text-muted/20
+                active:scale-95
+                transition-all duration-100
+                disabled:opacity-50 disabled:cursor-not-allowed
+              "
+              aria-label="Reset clock"
+            >
+              <svg
+                className="w-5 h-5 sm:w-6 sm:h-6 text-text-muted"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+            </button>
+          </div>
+        )}
+
+        {/* Row 2: Scores */}
       <div className="
-        max-w-7xl mx-auto
         flex items-center justify-between
         gap-[var(--space-2)] sm:gap-[var(--space-4)]
       ">
@@ -176,18 +344,18 @@ export function ScoreHeader({
           </span>
         </div>
 
-        {/* Period & Clock Display */}
+          {/* Period Display */}
         <div className="
           flex flex-col items-center
           px-[var(--space-2)] sm:px-[var(--space-6)]
-          min-w-[80px] sm:min-w-[140px]
+            min-w-[60px] sm:min-w-[100px]
           relative
         ">
           {/* Period Label - Tappable */}
           <button
             onClick={() => setShowPeriodSelector(!showPeriodSelector)}
             className="
-              text-text-muted text-[10px] sm:text-xs font-medium uppercase tracking-wide
+                text-text-muted text-xs sm:text-sm font-medium uppercase tracking-wide
               px-[var(--space-2)] py-[var(--space-1)]
               rounded-[var(--radius-sm)]
               hover:bg-bg-hover hover:text-text-primary
@@ -223,163 +391,9 @@ export function ScoreHeader({
             onClose={() => setShowPeriodSelector(false)}
           />
 
-          {/* Clock Display */}
-          {clock ? (
-            <div className="flex flex-col items-center">
-              {isEditingClock ? (
-                <input
-                  ref={clockInputRef}
-                  type="text"
-                  value={clockEditValue}
-                  onChange={(e) => setClockEditValue(e.target.value)}
-                  onBlur={handleClockEditSubmit}
-                  onKeyDown={handleClockKeyDown}
-                  className="
-                    font-display text-[24px] sm:text-[40px] leading-none tracking-tight
-                    text-text-primary text-center
-                    bg-transparent border-b-2 border-primary
-                    outline-none
-                    w-[5ch]
-                  "
-                  placeholder="MM:SS"
-                  aria-label="Edit clock time"
-                />
-              ) : isUpdatingClock ? (
-                <div className="flex items-center gap-[var(--space-2)]">
-                  <span
-                    className="
-                      font-display text-[24px] sm:text-[40px] leading-none tracking-tight
-                      text-text-muted
-                    "
-                  >
-                    {pendingClockValue}
-                  </span>
-                  <svg
-                    className="w-4 h-4 sm:w-5 sm:h-5 text-primary animate-spin"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                </div>
-              ) : (
-                <button
-                  onClick={handleClockClick}
-                  disabled={!clock.onSetTime}
-                  className={`
-                    font-display text-[24px] sm:text-[40px] leading-none tracking-tight
-                    transition-colors duration-[var(--duration-fast)]
-                    ${clock.isRunning ? 'text-primary' : 'text-text-primary'}
-                    ${clock.onSetTime ? 'hover:opacity-70 cursor-pointer' : 'cursor-default'}
-                  `}
-                  aria-label="Click to edit clock time"
-                >
-                  {clock.displayTime}
-                </button>
-              )}
-
-              {/* Clock Controls */}
-              <div className="flex items-center gap-[var(--space-1)] sm:gap-[var(--space-2)] mt-[var(--space-1)] sm:mt-[var(--space-2)]">
-                {clock.isRunning ? (
-                  <button
-                    onClick={clock.onPause}
-                    disabled={isUpdatingClock}
-                    className="
-                      flex items-center justify-center
-                      w-7 h-7 sm:w-8 sm:h-8
-                      rounded-full
-                      bg-accent/20
-                      hover:bg-accent/30
-                      transition-colors
-                      disabled:opacity-50 disabled:cursor-not-allowed
-                    "
-                    aria-label="Pause clock"
-                  >
-                    <svg
-                      className="w-3 h-3 sm:w-4 sm:h-4 text-accent"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <rect x="6" y="4" width="4" height="16" rx="1" />
-                      <rect x="14" y="4" width="4" height="16" rx="1" />
-                    </svg>
-                  </button>
-                ) : (
-                  <button
-                    onClick={clock.onStart}
-                    disabled={isUpdatingClock}
-                    className="
-                      flex items-center justify-center
-                      w-7 h-7 sm:w-8 sm:h-8
-                      rounded-full
-                      bg-primary/20
-                      hover:bg-primary/30
-                      transition-colors
-                      disabled:opacity-50 disabled:cursor-not-allowed
-                    "
-                    aria-label="Start clock"
-                  >
-                    <svg
-                      className="w-3 h-3 sm:w-4 sm:h-4 text-primary"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  </button>
-                )}
-
-                <button
-                  onClick={clock.onReset}
-                  disabled={isUpdatingClock}
-                  className="
-                    flex items-center justify-center
-                    w-7 h-7 sm:w-8 sm:h-8
-                    rounded-full
-                    bg-text-muted/10
-                    hover:bg-text-muted/20
-                    transition-colors
-                    disabled:opacity-50 disabled:cursor-not-allowed
-                  "
-                  aria-label="Reset clock"
-                >
-                  <svg
-                    className="w-3 h-3 sm:w-4 sm:h-4 text-text-muted"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                    <path d="M3 3v5h5" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <span className="
-                text-text-primary font-heading font-bold text-xl sm:text-2xl
-              ">
-                {PERIOD_LABELS[period]}
-              </span>
-              <div className="
-                flex items-center gap-1 mt-1
-              ">
+            {/* Live indicator when no clock */}
+            {!clock && (
+              <div className="flex items-center gap-1 mt-1">
                 <span className="
                   w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#FF3366]
                   animate-live-pulse
@@ -388,25 +402,6 @@ export function ScoreHeader({
                   text-[#FF3366] text-[10px] sm:text-xs font-semibold uppercase
                 ">
                   Live
-                </span>
-              </div>
-            </>
-          )}
-
-          {/* Live indicator when clock is present */}
-          {clock && (
-            <div className="
-              flex items-center gap-1 mt-1
-            ">
-              <span className={`
-                w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full
-                ${clock.isRunning ? 'bg-[#FF3366] animate-live-pulse' : 'bg-text-muted'}
-              `} />
-              <span className={`
-                text-[10px] sm:text-xs font-semibold uppercase
-                ${clock.isRunning ? 'text-[#FF3366]' : 'text-text-muted'}
-              `}>
-                {clock.isRunning ? 'Live' : 'Paused'}
               </span>
             </div>
           )}
@@ -453,6 +448,7 @@ export function ScoreHeader({
           >
             {awayTeam.score}
           </span>
+          </div>
         </div>
       </div>
     </header>

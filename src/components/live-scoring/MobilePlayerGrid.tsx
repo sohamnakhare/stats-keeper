@@ -145,9 +145,6 @@ function PlayerTile({ player, color, isSelected, onClick, isOnCourt, foulCount }
       `}>
         {player.name.split(' ').pop()}
       </span>
-      {player.isCaptain && (
-        <span className="text-[10px] text-gold">★</span>
-      )}
       
       {/* Foul dots indicator */}
       {foulCount > 0 && (
