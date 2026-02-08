@@ -9,6 +9,8 @@ export { TurnoverTypeModal, type TurnoverType } from './TurnoverTypeModal';
 export { FoulTypeModal, type FoulType } from './FoulTypeModal';
 export { SubstitutionModal } from './SubstitutionModal';
 export { ShotTypeModal, type ShotType, type ShotDetails } from './ShotTypeModal';
+export { PeriodSelector } from './PeriodSelector';
+export { EndOfPeriodModal } from './EndOfPeriodModal';
 
 // Mobile-specific components
 export { MobileTeamTabs } from './MobileTeamTabs';

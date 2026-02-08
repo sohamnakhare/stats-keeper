@@ -12,6 +12,10 @@ import {
 // Types
 // ============================================
 
+export interface UseGameClockOptions {
+  onClockZero?: () => void;
+}
+
 export interface UseGameClockReturn {
   // Display state
   timeRemaining: number; // milliseconds
@@ -69,7 +73,9 @@ function calculateCurrentTime(state: ClockState): number {
 // Hook
 // ============================================
 
-export function useGameClock(gameId: string): UseGameClockReturn {
+export function useGameClock(gameId: string, options?: UseGameClockOptions): UseGameClockReturn {
+  const { onClockZero } = options ?? {};
+
   // Server state (from SSE)
   const [serverState, setServerState] = useState<ClockState | null>(null);
 
@@ -80,9 +86,16 @@ export function useGameClock(gameId: string): UseGameClockReturn {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Refs for animation frame
+  // Refs for animation frame and tracking clock zero
   const animationFrameRef = useRef<number | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const hasTriggeredZeroRef = useRef(false);
+  const onClockZeroRef = useRef(onClockZero);
+
+  // Keep callback ref updated
+  useEffect(() => {
+    onClockZeroRef.current = onClockZero;
+  }, [onClockZero]);
 
   // Subscribe to SSE updates
   useEffect(() => {
@@ -90,9 +103,15 @@ export function useGameClock(gameId: string): UseGameClockReturn {
       gameId,
       (state) => {
         setServerState(state);
-        setDisplayTimeMs(calculateCurrentTime(state));
+        const currentTime = calculateCurrentTime(state);
+        setDisplayTimeMs(currentTime);
         setIsConnected(true);
         setError(null);
+
+        // Reset the zero trigger if clock is reset (time > 0)
+        if (currentTime > 0) {
+          hasTriggeredZeroRef.current = false;
+        }
       },
       () => {
         setIsConnected(false);
@@ -129,6 +148,13 @@ export function useGameClock(gameId: string): UseGameClockReturn {
       const currentTime = calculateCurrentTime(serverState);
       setDisplayTimeMs(currentTime);
 
+      // Trigger onClockZero callback when reaching 0 (only once per reset)
+      if (currentTime <= 0 && !hasTriggeredZeroRef.current) {
+        hasTriggeredZeroRef.current = true;
+        onClockZeroRef.current?.();
+        return;
+      }
+
       // Auto-pause when reaching 0
       if (currentTime <= 0) {
         // Server will handle the actual pause
@@ -163,9 +189,19 @@ export function useGameClock(gameId: string): UseGameClockReturn {
 
   const start = useCallback(() => executeAction('start'), [executeAction]);
   const pause = useCallback(() => executeAction('pause'), [executeAction]);
-  const reset = useCallback(() => executeAction('reset'), [executeAction]);
+  const reset = useCallback(() => {
+    // Reset the zero trigger when resetting the clock
+    hasTriggeredZeroRef.current = false;
+    return executeAction('reset');
+  }, [executeAction]);
   const setTime = useCallback(
-    (milliseconds: number) => executeAction('set', milliseconds),
+    (milliseconds: number) => {
+      // Reset the zero trigger when setting time
+      if (milliseconds > 0) {
+        hasTriggeredZeroRef.current = false;
+      }
+      return executeAction('set', milliseconds);
+    },
     [executeAction]
   );
 

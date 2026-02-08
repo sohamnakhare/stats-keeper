@@ -17,10 +17,12 @@ import {
   MobileTeamTabs,
   MobilePlayerGrid,
   MobileStatModal,
+  EndOfPeriodModal,
   type TurnoverType,
   type FoulType,
   type ShotDetails,
 } from '@/components/live-scoring';
+import type { Period } from '@/types';
 import type { PlayEventResponse } from '@/services/game-api';
 import { Button } from '@/components/ui';
 
@@ -31,8 +33,15 @@ interface GamePageProps {
 export default function GamePage({ params }: GamePageProps) {
   const { id } = use(params);
 
-  // Game clock hook
-  const clock = useGameClock(id);
+  // End of period modal state
+  const [showEndOfPeriodModal, setShowEndOfPeriodModal] = useState(false);
+
+  // Game clock hook with onClockZero callback
+  const clock = useGameClock(id, {
+    onClockZero: useCallback(() => {
+      setShowEndOfPeriodModal(true);
+    }, []),
+  });
 
   const {
     game,
@@ -52,6 +61,7 @@ export default function GamePage({ params }: GamePageProps) {
     recordSubstitution,
     undoLastAction,
     updatePossession,
+    updatePeriod,
     updateEvent,
   } = useLiveGame(id, clock.displayTime);
 
@@ -204,6 +214,25 @@ export default function GamePage({ params }: GamePageProps) {
     [selectedPlayerId, recordSubstitution]
   );
 
+  // Handle period change (from selector or end of period modal)
+  const handlePeriodChange = useCallback(
+    async (newPeriod: Period) => {
+      await updatePeriod(newPeriod);
+      // Reset the clock when advancing to a new period
+      clock.reset();
+    },
+    [updatePeriod, clock]
+  );
+
+  // Handle end of period confirmation
+  const handleEndOfPeriodConfirm = useCallback(
+    async (nextPeriod: Period) => {
+      await handlePeriodChange(nextPeriod);
+      setShowEndOfPeriodModal(false);
+    },
+    [handlePeriodChange]
+  );
+
   // Get bench players for the selected team
   const benchPlayersForSelectedTeam = game
     ? selectedTeam === 'home'
@@ -299,6 +328,27 @@ export default function GamePage({ params }: GamePageProps) {
 
   return (
     <main className="min-h-screen bg-bg-primary flex flex-col">
+      {/* Back Button Row */}
+      <div className="bg-surface px-[var(--space-3)] sm:px-[var(--space-4)] py-[var(--space-2)]">
+        <div className="max-w-7xl mx-auto">
+          <Link 
+            href="/games"
+            className="
+              inline-flex items-center gap-[var(--space-1)]
+              text-text-muted hover:text-text-primary
+              text-sm
+              transition-colors
+            "
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            <span className="hidden sm:inline">Back to Games</span>
+            <span className="sm:hidden">Back</span>
+          </Link>
+        </div>
+      </div>
+
       {/* Score Header - Always visible */}
       <ScoreHeader
         homeTeam={{
@@ -316,12 +366,14 @@ export default function GamePage({ params }: GamePageProps) {
         period={game.currentPeriod}
         possession={game.currentPossession}
         onPossessionChange={updatePossession}
+        onPeriodChange={handlePeriodChange}
         clock={{
           displayTime: clock.displayTime,
           isRunning: clock.isRunning,
           onStart: clock.start,
           onPause: clock.pause,
           onReset: clock.reset,
+          onSetTime: clock.setTime,
         }}
       />
 
@@ -595,6 +647,16 @@ export default function GamePage({ params }: GamePageProps) {
             <span className="text-highlight">· Add details?</span>
           </button>
         </div>
+      )}
+
+      {/* End of Period Modal - Auto-prompt when clock reaches 0:00 */}
+      {game && (
+        <EndOfPeriodModal
+          currentPeriod={game.currentPeriod}
+          isOpen={showEndOfPeriodModal}
+          onConfirm={handleEndOfPeriodConfirm}
+          onDismiss={() => setShowEndOfPeriodModal(false)}
+        />
       )}
     </main>
   );

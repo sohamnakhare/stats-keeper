@@ -95,6 +95,20 @@ export default function GamesListPage() {
   return (
     <main className="min-h-screen bg-bg-primary">
       <div className="max-w-4xl mx-auto px-[var(--space-3)] sm:px-[var(--space-4)] py-[var(--space-4)] sm:py-[var(--space-8)]">
+        {/* Back Link */}
+        <div className="mb-[var(--space-3)] sm:mb-[var(--space-4)]">
+          <Link 
+            href="/" 
+            className="text-text-muted hover:text-text-primary transition-colors text-sm inline-flex items-center gap-[var(--space-1)]"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            <span className="hidden sm:inline">Back to Home</span>
+            <span className="sm:hidden">Home</span>
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-[var(--space-3)] mb-[var(--space-4)] sm:mb-[var(--space-8)]">
           <div>
@@ -265,18 +279,6 @@ export default function GamesListPage() {
           </div>
         )}
 
-        {/* Back Link */}
-        <div className="mt-[var(--space-6)] sm:mt-[var(--space-8)] text-center">
-          <Link 
-            href="/" 
-            className="text-text-muted hover:text-text-primary transition-colors text-sm sm:text-base inline-flex items-center gap-[var(--space-1)]"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            Back to Home
-          </Link>
-        </div>
       </div>
     </main>
   );

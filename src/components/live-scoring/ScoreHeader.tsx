@@ -1,6 +1,20 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import type { Period } from '@/types';
+import { PeriodSelector } from './PeriodSelector';
+
+/**
+ * Parse MM:SS string to milliseconds
+ */
+function parseClockTime(timeStr: string): number | null {
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return null;
+  const minutes = parseInt(match[1], 10);
+  const seconds = parseInt(match[2], 10);
+  if (seconds >= 60) return null;
+  return (minutes * 60 + seconds) * 1000;
+}
 
 interface TeamInfo {
   name: string;
@@ -15,6 +29,7 @@ interface ClockInfo {
   onStart: () => void;
   onPause: () => void;
   onReset: () => void;
+  onSetTime?: (milliseconds: number) => Promise<void>;
 }
 
 interface ScoreHeaderProps {
@@ -23,6 +38,7 @@ interface ScoreHeaderProps {
   period: Period;
   possession: 'home' | 'away' | null;
   onPossessionChange?: (team: 'home' | 'away') => void;
+  onPeriodChange?: (period: Period) => void;
   clock?: ClockInfo;
 }
 
@@ -42,8 +58,68 @@ export function ScoreHeader({
   period,
   possession,
   onPossessionChange,
+  onPeriodChange,
   clock,
 }: ScoreHeaderProps) {
+  const [showPeriodSelector, setShowPeriodSelector] = useState(false);
+  const [isEditingClock, setIsEditingClock] = useState(false);
+  const [isUpdatingClock, setIsUpdatingClock] = useState(false);
+  const [clockEditValue, setClockEditValue] = useState('');
+  const [pendingClockValue, setPendingClockValue] = useState<string | null>(null);
+  const clockInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePeriodSelect = (newPeriod: Period) => {
+    onPeriodChange?.(newPeriod);
+    setShowPeriodSelector(false);
+  };
+
+  // Focus input when entering edit mode
+  useEffect(() => {
+    if (isEditingClock && clockInputRef.current) {
+      clockInputRef.current.focus();
+      clockInputRef.current.select();
+    }
+  }, [isEditingClock]);
+
+  const handleClockClick = () => {
+    if (!clock?.onSetTime) return;
+    // Pause clock if running before editing
+    if (clock.isRunning) {
+      clock.onPause();
+    }
+    setClockEditValue(clock.displayTime);
+    setIsEditingClock(true);
+  };
+
+  const handleClockEditSubmit = async () => {
+    const milliseconds = parseClockTime(clockEditValue);
+    if (milliseconds !== null && clock?.onSetTime) {
+      setIsEditingClock(false);
+      setIsUpdatingClock(true);
+      setPendingClockValue(clockEditValue);
+      try {
+        await clock.onSetTime(milliseconds);
+      } finally {
+        setIsUpdatingClock(false);
+        setPendingClockValue(null);
+      }
+    } else {
+      setIsEditingClock(false);
+    }
+  };
+
+  const handleClockEditCancel = () => {
+    setIsEditingClock(false);
+  };
+
+  const handleClockKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleClockEditSubmit();
+    } else if (e.key === 'Escape') {
+      handleClockEditCancel();
+    }
+  };
+
   return (
     <header className="
       w-full
@@ -105,32 +181,121 @@ export function ScoreHeader({
           flex flex-col items-center
           px-[var(--space-2)] sm:px-[var(--space-6)]
           min-w-[80px] sm:min-w-[140px]
+          relative
         ">
-          {/* Period Label */}
-          <span className="
-            text-text-muted text-[10px] sm:text-xs font-medium uppercase tracking-wide
-          ">
+          {/* Period Label - Tappable */}
+          <button
+            onClick={() => setShowPeriodSelector(!showPeriodSelector)}
+            className="
+              text-text-muted text-[10px] sm:text-xs font-medium uppercase tracking-wide
+              px-[var(--space-2)] py-[var(--space-1)]
+              rounded-[var(--radius-sm)]
+              hover:bg-bg-hover hover:text-text-primary
+              transition-all duration-[var(--duration-fast)]
+              flex items-center gap-[var(--space-1)]
+            "
+            aria-label={`Current period: ${PERIOD_LABELS[period]}. Click to change.`}
+            aria-expanded={showPeriodSelector}
+            aria-haspopup="listbox"
+          >
             {PERIOD_LABELS[period]}
-          </span>
+            <svg
+              className={`
+                w-3 h-3 transition-transform duration-[var(--duration-fast)]
+                ${showPeriodSelector ? 'rotate-180' : ''}
+              `}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+
+          {/* Period Selector Popup */}
+          <PeriodSelector
+            currentPeriod={period}
+            isOpen={showPeriodSelector}
+            onSelect={handlePeriodSelect}
+            onClose={() => setShowPeriodSelector(false)}
+          />
 
           {/* Clock Display */}
           {clock ? (
             <div className="flex flex-col items-center">
-              <span 
-                className={`
-                  font-display text-[24px] sm:text-[40px] leading-none tracking-tight
-                  transition-colors duration-[var(--duration-fast)]
-                  ${clock.isRunning ? 'text-primary' : 'text-text-primary'}
-                `}
-              >
-                {clock.displayTime}
-              </span>
+              {isEditingClock ? (
+                <input
+                  ref={clockInputRef}
+                  type="text"
+                  value={clockEditValue}
+                  onChange={(e) => setClockEditValue(e.target.value)}
+                  onBlur={handleClockEditSubmit}
+                  onKeyDown={handleClockKeyDown}
+                  className="
+                    font-display text-[24px] sm:text-[40px] leading-none tracking-tight
+                    text-text-primary text-center
+                    bg-transparent border-b-2 border-primary
+                    outline-none
+                    w-[5ch]
+                  "
+                  placeholder="MM:SS"
+                  aria-label="Edit clock time"
+                />
+              ) : isUpdatingClock ? (
+                <div className="flex items-center gap-[var(--space-2)]">
+                  <span
+                    className="
+                      font-display text-[24px] sm:text-[40px] leading-none tracking-tight
+                      text-text-muted
+                    "
+                  >
+                    {pendingClockValue}
+                  </span>
+                  <svg
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-primary animate-spin"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                </div>
+              ) : (
+                <button
+                  onClick={handleClockClick}
+                  disabled={!clock.onSetTime}
+                  className={`
+                    font-display text-[24px] sm:text-[40px] leading-none tracking-tight
+                    transition-colors duration-[var(--duration-fast)]
+                    ${clock.isRunning ? 'text-primary' : 'text-text-primary'}
+                    ${clock.onSetTime ? 'hover:opacity-70 cursor-pointer' : 'cursor-default'}
+                  `}
+                  aria-label="Click to edit clock time"
+                >
+                  {clock.displayTime}
+                </button>
+              )}
 
               {/* Clock Controls */}
               <div className="flex items-center gap-[var(--space-1)] sm:gap-[var(--space-2)] mt-[var(--space-1)] sm:mt-[var(--space-2)]">
                 {clock.isRunning ? (
                   <button
                     onClick={clock.onPause}
+                    disabled={isUpdatingClock}
                     className="
                       flex items-center justify-center
                       w-7 h-7 sm:w-8 sm:h-8
@@ -138,6 +303,7 @@ export function ScoreHeader({
                       bg-accent/20
                       hover:bg-accent/30
                       transition-colors
+                      disabled:opacity-50 disabled:cursor-not-allowed
                     "
                     aria-label="Pause clock"
                   >
@@ -153,6 +319,7 @@ export function ScoreHeader({
                 ) : (
                   <button
                     onClick={clock.onStart}
+                    disabled={isUpdatingClock}
                     className="
                       flex items-center justify-center
                       w-7 h-7 sm:w-8 sm:h-8
@@ -160,6 +327,7 @@ export function ScoreHeader({
                       bg-primary/20
                       hover:bg-primary/30
                       transition-colors
+                      disabled:opacity-50 disabled:cursor-not-allowed
                     "
                     aria-label="Start clock"
                   >
@@ -175,6 +343,7 @@ export function ScoreHeader({
 
                 <button
                   onClick={clock.onReset}
+                  disabled={isUpdatingClock}
                   className="
                     flex items-center justify-center
                     w-7 h-7 sm:w-8 sm:h-8
@@ -182,6 +351,7 @@ export function ScoreHeader({
                     bg-text-muted/10
                     hover:bg-text-muted/20
                     transition-colors
+                    disabled:opacity-50 disabled:cursor-not-allowed
                   "
                   aria-label="Reset clock"
                 >
