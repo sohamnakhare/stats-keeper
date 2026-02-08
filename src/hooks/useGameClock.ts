@@ -174,120 +174,38 @@ export function useGameClock(gameId: string, options?: UseGameClockOptions): Use
     };
   }, [serverState]);
 
-  // Clock control actions with optimistic updates
-  // The SSE stream will reconcile the authoritative state from the server
-  
-  const start = useCallback(async () => {
-    if (!serverState) return;
-    
-    // Store previous state for rollback
-    const previousState = serverState;
-    const now = Date.now();
-    
-    // Optimistic update: start clock immediately
-    setServerState((prev) =>
-      prev ? { ...prev, isRunning: true, lastStartedAt: now } : null
-    );
-    setError(null);
+  // Clock control actions - NOT optimistic to avoid time jumps
+  // SSE provides near-real-time sync, so we let the server be the source of truth
+  // This prevents visual jumps when server timestamps differ from client predictions
+  const executeAction = useCallback(
+    async (action: ClockAction, time?: number) => {
+      try {
+        setError(null);
+        await controlClock(gameId, action, time);
+        // SSE will update the state
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Failed to control clock');
+      }
+    },
+    [gameId]
+  );
 
-    try {
-      await controlClock(gameId, 'start');
-      // SSE will sync the authoritative state
-    } catch (e) {
-      // Rollback on failure
-      setServerState(previousState);
-      setError(e instanceof Error ? e.message : 'Failed to start clock');
-    }
-  }, [gameId, serverState]);
-
-  const pause = useCallback(async () => {
-    if (!serverState) return;
-    
-    // Store previous state for rollback
-    const previousState = serverState;
-    
-    // Calculate the current time remaining at pause
-    const currentTime = calculateCurrentTime(serverState);
-    
-    // Optimistic update: pause clock immediately
-    setServerState((prev) =>
-      prev
-        ? { ...prev, isRunning: false, lastStartedAt: null, timeRemaining: currentTime }
-        : null
-    );
-    setDisplayTimeMs(currentTime);
-    setError(null);
-
-    try {
-      await controlClock(gameId, 'pause');
-      // SSE will sync the authoritative state
-    } catch (e) {
-      // Rollback on failure
-      setServerState(previousState);
-      setError(e instanceof Error ? e.message : 'Failed to pause clock');
-    }
-  }, [gameId, serverState]);
-
-  const reset = useCallback(async () => {
-    if (!serverState) return;
-    
-    // Store previous state for rollback
-    const previousState = serverState;
-    const periodDuration = serverState.periodDuration;
-    
-    // Reset the zero trigger
+  const start = useCallback(() => executeAction('start'), [executeAction]);
+  const pause = useCallback(() => executeAction('pause'), [executeAction]);
+  const reset = useCallback(() => {
+    // Reset the zero trigger when resetting the clock
     hasTriggeredZeroRef.current = false;
-    
-    // Optimistic update: reset clock immediately
-    setServerState((prev) =>
-      prev
-        ? { ...prev, isRunning: false, lastStartedAt: null, timeRemaining: periodDuration }
-        : null
-    );
-    setDisplayTimeMs(periodDuration);
-    setError(null);
-
-    try {
-      await controlClock(gameId, 'reset');
-      // SSE will sync the authoritative state
-    } catch (e) {
-      // Rollback on failure
-      setServerState(previousState);
-      setError(e instanceof Error ? e.message : 'Failed to reset clock');
-    }
-  }, [gameId, serverState]);
-
+    return executeAction('reset');
+  }, [executeAction]);
   const setTime = useCallback(
-    async (milliseconds: number) => {
-      if (!serverState) return;
-      
-      // Store previous state for rollback
-      const previousState = serverState;
-      
-      // Reset the zero trigger if setting to non-zero
+    (milliseconds: number) => {
+      // Reset the zero trigger when setting time
       if (milliseconds > 0) {
         hasTriggeredZeroRef.current = false;
       }
-      
-      // Optimistic update: set time immediately
-      setServerState((prev) =>
-        prev
-          ? { ...prev, isRunning: false, lastStartedAt: null, timeRemaining: milliseconds }
-          : null
-      );
-      setDisplayTimeMs(milliseconds);
-      setError(null);
-
-      try {
-        await controlClock(gameId, 'set', milliseconds);
-        // SSE will sync the authoritative state
-      } catch (e) {
-        // Rollback on failure
-        setServerState(previousState);
-        setError(e instanceof Error ? e.message : 'Failed to set clock time');
-      }
+      return executeAction('set', milliseconds);
     },
-    [gameId, serverState]
+    [executeAction]
   );
 
   return {
