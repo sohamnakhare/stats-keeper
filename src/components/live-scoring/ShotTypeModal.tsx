@@ -17,6 +17,9 @@ export type ShotType =
   | 'alley_oop'
   | 'putback';
 
+// Shot zones per FIBA/data-models.md
+export type ShotZone = 'paint' | 'mid_range' | 'three_point';
+
 const SHOT_TYPES: { value: ShotType; label: string }[] = [
   { value: 'layup', label: 'Layup' },
   { value: 'dunk', label: 'Dunk' },
@@ -33,6 +36,7 @@ const SHOT_TYPES: { value: ShotType; label: string }[] = [
 
 export interface ShotDetails {
   shotType?: ShotType;
+  shotZone?: ShotZone;
   isFastBreak?: boolean;
   isSecondChance?: boolean;
   assistedBy?: string;
@@ -64,6 +68,9 @@ export function ShotTypeModal({
   const [selectedShotType, setSelectedShotType] = useState<ShotType | undefined>(
     event?.eventData?.shotType as ShotType | undefined
   );
+  const [shotZone, setShotZone] = useState<ShotZone>(
+    (event?.eventData?.shotZone as ShotZone) ?? 'mid_range'
+  );
   const [isFastBreak, setIsFastBreak] = useState(
     event?.eventData?.isFastBreak ?? false
   );
@@ -78,11 +85,13 @@ export function ShotTypeModal({
   useEffect(() => {
     if (event) {
       setSelectedShotType(event.eventData?.shotType as ShotType | undefined);
+      setShotZone((event.eventData?.shotZone as ShotZone) ?? 'mid_range');
       setIsFastBreak(event.eventData?.isFastBreak ?? false);
       setIsSecondChance(event.eventData?.isSecondChance ?? false);
       setAssistedBy(event.eventData?.assistedBy as string | undefined);
     } else {
       setSelectedShotType(undefined);
+      setShotZone('mid_range');
       setIsFastBreak(false);
       setIsSecondChance(false);
       setAssistedBy(undefined);
@@ -111,6 +120,7 @@ export function ShotTypeModal({
   const handleSave = () => {
     onSave(event.id, {
       shotType: selectedShotType,
+      shotZone,
       isFastBreak,
       isSecondChance,
       assistedBy,
@@ -121,6 +131,7 @@ export function ShotTypeModal({
   const shotMadeOrMissed = isMadeShot ? 'Made' : 'Missed';
   const points = event.eventData?.points ?? 2;
   const showAssistSection = isMadeShot && teammates.length > 0;
+  const isTwoPointer = points === 2;
 
   return (
     <div
@@ -286,6 +297,63 @@ export function ShotTypeModal({
               </button>
             </div>
           </div>
+
+          {/* Shot Zone - Only for 2-point shots */}
+          {isTwoPointer && (
+            <div>
+              <h3 className="text-text-muted text-xs font-medium uppercase tracking-wide mb-[var(--space-3)]">
+                Shot Zone
+              </h3>
+              <div className="flex gap-[var(--space-3)]">
+                <button
+                  onClick={() => setShotZone('paint')}
+                  className={`
+                    flex-1
+                    min-h-[var(--tap-target-md)]
+                    px-[var(--space-4)]
+                    flex items-center justify-center gap-[var(--space-2)]
+                    rounded-[var(--radius-md)]
+                    font-heading font-semibold text-sm
+                    transition-all duration-[var(--duration-fast)]
+                    ${shotZone === 'paint'
+                      ? 'bg-primary/20 border-2 border-primary text-primary'
+                      : 'bg-bg-tertiary border-2 border-transparent text-text-secondary hover:bg-bg-hover hover:text-text-primary'
+                    }
+                    active:scale-[0.98]
+                  `}
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <rect x="7" y="7" width="10" height="10" rx="1" />
+                  </svg>
+                  Paint
+                </button>
+                <button
+                  onClick={() => setShotZone('mid_range')}
+                  className={`
+                    flex-1
+                    min-h-[var(--tap-target-md)]
+                    px-[var(--space-4)]
+                    flex items-center justify-center gap-[var(--space-2)]
+                    rounded-[var(--radius-md)]
+                    font-heading font-semibold text-sm
+                    transition-all duration-[var(--duration-fast)]
+                    ${shotZone === 'mid_range'
+                      ? 'bg-primary/20 border-2 border-primary text-primary'
+                      : 'bg-bg-tertiary border-2 border-transparent text-text-secondary hover:bg-bg-hover hover:text-text-primary'
+                    }
+                    active:scale-[0.98]
+                  `}
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="9" />
+                    <circle cx="12" cy="12" r="4" />
+                  </svg>
+                  Mid-Range
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Shot Types */}
           <div>

@@ -117,6 +117,7 @@ export default function GamePage({ params }: GamePageProps) {
     async (eventId: string, details: ShotDetails) => {
       await updateEvent(eventId, {
         shotType: details.shotType,
+        shotZone: details.shotZone,
         isFastBreak: details.isFastBreak,
         isSecondChance: details.isSecondChance,
         assistedBy: details.assistedBy,
@@ -196,8 +197,8 @@ export default function GamePage({ params }: GamePageProps) {
 
   // Handle foul type selection
   const handleFoulSelect = useCallback(
-    (type: FoulType) => {
-      recordStat({ statType: 'foul', foulType: type });
+    (type: FoulType, drawnBy?: string) => {
+      recordStat({ statType: 'foul', foulType: type, drawnBy });
       setShowFoulModal(false);
     },
     [recordStat]
@@ -250,6 +251,39 @@ export default function GamePage({ params }: GamePageProps) {
       ? game.awayTeam.color
       : '#00F5A0'
     : '#00F5A0';
+
+  // Get opponent players for the selected team (for foul drawnBy selection)
+  const opponentPlayersForSelectedTeam = game
+    ? selectedTeam === 'home'
+      ? game.awayTeam.players
+      : selectedTeam === 'away'
+      ? game.homeTeam.players
+      : []
+    : [];
+
+  // Compute player foul counts from events
+  const playerFouls = events.reduce<Record<string, number>>((acc, event) => {
+    if (event.eventType === 'foul' && event.playerId) {
+      acc[event.playerId] = (acc[event.playerId] || 0) + 1;
+    }
+    return acc;
+  }, {});
+
+  // Compute team fouls for current period (resets each quarter per FIBA rules)
+  const currentPeriod = game?.currentPeriod;
+  const teamFoulsThisPeriod = events.reduce<{ home: number; away: number }>(
+    (acc, event) => {
+      if (event.eventType === 'foul' && event.period === currentPeriod && game) {
+        if (event.teamId === game.homeTeamId) {
+          acc.home += 1;
+        } else if (event.teamId === game.awayTeamId) {
+          acc.away += 1;
+        }
+      }
+      return acc;
+    },
+    { home: 0, away: 0 }
+  );
 
   // Loading state
   if (isLoading) {
@@ -388,6 +422,8 @@ export default function GamePage({ params }: GamePageProps) {
               shortName={game.homeTeam.shortName}
               color={game.homeTeam.color}
               players={game.homeTeam.players}
+              playerFouls={playerFouls}
+              teamFoulsThisPeriod={teamFoulsThisPeriod.home}
               onPlayerSelect={(playerId) => selectPlayer(playerId, 'home')}
               selectedPlayerId={selectedTeam === 'home' ? selectedPlayerId : null}
               isActiveTeam={selectedTeam === 'home'}
@@ -426,6 +462,8 @@ export default function GamePage({ params }: GamePageProps) {
               shortName={game.awayTeam.shortName}
               color={game.awayTeam.color}
               players={game.awayTeam.players}
+              playerFouls={playerFouls}
+              teamFoulsThisPeriod={teamFoulsThisPeriod.away}
               onPlayerSelect={(playerId) => selectPlayer(playerId, 'away')}
               selectedPlayerId={selectedTeam === 'away' ? selectedPlayerId : null}
               isActiveTeam={selectedTeam === 'away'}
@@ -449,12 +487,15 @@ export default function GamePage({ params }: GamePageProps) {
               }}
               activeTeam={mobileActiveTeam}
               onTeamChange={setMobileActiveTeam}
+              homeFoulsThisPeriod={teamFoulsThisPeriod.home}
+              awayFoulsThisPeriod={teamFoulsThisPeriod.away}
             />
 
             {/* Player Grid for Active Team */}
             <MobilePlayerGrid
               players={mobileActiveTeam === 'home' ? game.homeTeam.players : game.awayTeam.players}
               teamColor={mobileActiveTeam === 'home' ? game.homeTeam.color : game.awayTeam.color}
+              playerFouls={playerFouls}
               onPlayerSelect={handleMobilePlayerSelect}
               selectedPlayerId={selectedTeam === mobileActiveTeam ? selectedPlayerId : null}
             />
@@ -552,6 +593,7 @@ export default function GamePage({ params }: GamePageProps) {
 
           <FoulTypeModal
             player={selectedPlayer}
+            opponentPlayers={opponentPlayersForSelectedTeam}
             isOpen={showFoulModal}
             onSelect={handleFoulSelect}
             onCancel={() => setShowFoulModal(false)}

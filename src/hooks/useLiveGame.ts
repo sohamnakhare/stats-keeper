@@ -48,6 +48,7 @@ export interface QuickStatInput {
   turnoverType?: string;
   // Foul specific
   foulType?: string;
+  drawnBy?: string; // Player ID who drew the foul (was fouled on)
 }
 
 // ============================================
@@ -201,7 +202,7 @@ export function useLiveGame(gameId: string, clockDisplayTime?: string) {
           eventType = input.made ? 'field_goal_made' : 'field_goal_missed';
           eventData = {
             points: input.points || 2,
-            shotZone: input.points === 3 ? 'three_point' : 'paint',
+            shotZone: input.points === 3 ? 'three_point' : 'mid_range',
           };
           break;
         case 'free_throw':
@@ -245,6 +246,7 @@ export function useLiveGame(gameId: string, clockDisplayTime?: string) {
           eventData = {
             foulType: input.foulType || 'personal',
             isTeamFoul: true,
+            drawnBy: input.drawnBy,
           };
           break;
         default:

@@ -191,14 +191,12 @@ export function TeamComparisonCard({ homeTeam, awayTeam }: TeamComparisonCardPro
           label="Offensive"
           homeValue={homeTeam.offensiveRebounds}
           awayValue={awayTeam.offensiveRebounds}
-          indent
         />
 
         <StatRow
           label="Defensive"
           homeValue={homeTeam.defensiveRebounds}
           awayValue={awayTeam.defensiveRebounds}
-          indent
         />
 
         <Divider />
